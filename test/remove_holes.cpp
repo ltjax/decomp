@@ -15,5 +15,12 @@ int main()
 	
 	auto mergedPolygon = removeHoles(pointList, outerPolygon, {innerPolygon});
 	
+	if (mergedPolygon.size() != 10)
+		return -1;
+	
+	std::vector<std::uint16_t> correctPolygon={2, 3, 0, 1, 2, 6, 5, 4, 7, 6};
+	if (!std::equal(correctPolygon.begin(), correctPolygon.end(), mergedPolygon.begin()))
+		return -1;
+	
 	return 0;
 }
