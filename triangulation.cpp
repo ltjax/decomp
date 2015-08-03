@@ -8,7 +8,10 @@ using namespace triangulation;
 
 namespace {
 
-std::uint16_t findRightmostPoint(std::vector<Point> const& pointList, std::vector<std::uint16_t> const& polygon)
+typedef std::vector<Point> PointList;
+typedef std::vector<std::uint16_t> IndexList;
+
+std::uint16_t findRightmostPoint(PointList const& pointList, IndexList const& polygon)
 {
 	assert(!polygon.empty());
 	
@@ -28,12 +31,22 @@ bool isCounterClockwise(Point const& a, Point const& b, Point const& c)
 	return determinant(b-a, c-a)>0.0;
 }
 
+bool isClockwise(Point const& a, Point const& b, Point const& c)
+{
+	return determinant(b-a, c-a)<0.0;
+}
+
 bool inCone(Point const& a, Point const& b, Point const& c, Point const& p)
 {
 	if (isCounterClockwise(a, b, c))
 		return isCounterClockwise(a, b, p) && isCounterClockwise(b, c, p);
 	else
 		return isCounterClockwise(a, b, p) || isCounterClockwise(b, c, p);
+}
+
+bool triangleContains(Point const& a, Point const& b, Point const& c, Point const& tested)
+{
+	return !isClockwise(a, b, tested) && !isClockwise(b, c, tested) && !isClockwise(c, a, tested);
 }
 
 inline double squared(Point const& p)
@@ -71,7 +84,7 @@ bool segmentsIntersect(Point const& a, Point const& b, Point const& c, Point con
 	return true;
 }
 
-bool pointVisibleFrom(std::vector<Point> const& pointList, std::vector<std::uint16_t> const& indexList, int relativeIndex, Point const& from)
+bool pointVisibleFrom(PointList const& pointList, IndexList const& indexList, int relativeIndex, Point const& from)
 {
 	int N=indexList.size();
 	auto target=pointList[indexList[relativeIndex]];
@@ -98,10 +111,83 @@ double dot(Point const& lhs, Point const& rhs)
 	return lhs[0]*rhs[0]+lhs[1]*rhs[1];
 }
 
+struct VertexNode
+{
+	std::uint16_t index;
+	VertexNode* next;
+	VertexNode* prev;
+	bool isConvex;
+	bool isReflex;
+	bool isEar;
+};
+
+void updateNodeType(VertexNode* node, PointList const& pointList)
+{
+	node->isConvex = isCounterClockwise(pointList[node->prev->index], pointList[node->index], pointList[node->next->index]);
+	node->isReflex = isClockwise(pointList[node->prev->index], pointList[node->index], pointList[node->next->index]);
 }
 
-std::vector<std::uint16_t> triangulation::removeHoles(std::vector<Point> const& pointList,
-	std::vector<std::uint16_t> indexList, std::vector<std::vector<std::uint16_t>> holeList)
+void updateEarState(VertexNode* node, PointList const& pointList)
+{
+	// A vertex is an ear iff it's convex and no vertices are inside the attached ear
+	// It is sufficient to test only for reflex vertices, as any vertex in the ear implies
+	// that a reflex vertex is also there because the polygon is simple
+	if (!node->isConvex)
+	{
+		node->isEar=false;
+		return;
+	}
+	
+	auto&& a(pointList[node->prev->index]);
+	auto&& b(pointList[node->index]);
+	auto&& c(pointList[node->next->index]);
+	
+	auto current=node->next->next;
+	while (current!=node->prev)
+	{
+		if (!current->isReflex)
+			continue;
+		
+		if (triangleContains(a, b, c, pointList[current->index]))
+		{
+			node->isEar=false;
+			return;
+		}
+	}
+	
+	node->isEar=true;
+}
+
+VertexNode* findEar(VertexNode* current)
+{
+	auto first = current;
+	do
+	{
+		if (current->isEar)
+			return current;
+		
+		current = current->next;
+	} while (current != first);
+	
+	return nullptr;
+}
+
+VertexNode* clipEar(IndexList& resultList, VertexNode* ear, PointList const& pointList)
+{
+	resultList.insert(resultList.end(), {ear->prev->index, ear->index, ear->next->index});
+	ear->prev->next = ear->next;
+	ear->next->prev = ear->prev;
+	updateNodeType(ear->prev, pointList);
+	updateNodeType(ear->next, pointList);
+	updateEarState(ear->prev, pointList);
+	updateEarState(ear->next, pointList);
+	return ear->next;
+}
+
+}
+
+IndexList triangulation::removeHoles(PointList const& pointList,
+	IndexList indexList, std::vector<IndexList> holeList)
 {
 	while (!holeList.empty())
 	{
@@ -121,7 +207,7 @@ std::vector<std::uint16_t> triangulation::removeHoles(std::vector<Point> const& 
 			}
 		}
 		
-		std::vector<std::uint16_t> hole = std::move(*rightmostHole);
+		IndexList hole = std::move(*rightmostHole);
 		holeList.erase(rightmostHole);
 		Point holePoint = pointList[hole[rightmostPoint]];
 		Point bestDirection = normalize(normalize(holePoint-pointList[hole[(rightmostPoint+1)%hole.size()]])+
@@ -174,3 +260,51 @@ std::vector<std::uint16_t> triangulation::removeHoles(std::vector<Point> const& 
 	
 	return indexList;
 }
+
+IndexList earClipping(PointList const& pointList, IndexList const& indexList)
+{
+	std::vector<VertexNode> nodeList(indexList.size());
+	IndexList resultList;
+	
+	
+	int N=indexList.size();
+	if (N < 3)
+		throw std::invalid_argument("Polygon needs at least 3 vertices");
+	
+	resultList.reserve((N-2)*3);
+	
+	for (int i=0; i<N; ++i)
+	{
+		int j=(i+1)%N;
+		int k=(i+2)%N;
+		
+		auto& node0(nodeList[i]);
+		auto& node1(nodeList[j]);
+		
+		node0.next = &node1;
+		node1.prev = &node0;
+		node0.index = indexList[i];
+	}
+	
+	for (auto&& node : nodeList)
+		updateNodeType(&node, pointList);
+	
+	for (auto&& node : nodeList)
+		updateEarState(&node, pointList);
+	
+	auto current = &nodeList.front();
+	while (N >= 3)
+	{
+		current = findEar(current);
+		if (current == nullptr)
+			throw std::invalid_argument("Polygon is not simple");
+		
+		current = clipEar(resultList, current, pointList);
+	}
+	
+	// Only a line segment left now
+	assert(current->next->next==current);
+	
+	return resultList;
+}
+
