@@ -7,6 +7,7 @@ include(CTest)
 
 set(TESTS
   remove_holes
+  ear_clipping
 )
 
 foreach(test ${TESTS})

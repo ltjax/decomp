@@ -65,6 +65,9 @@ inline Point operator-(Point const& lhs, Point const& rhs)
 
 std::vector<std::uint16_t> removeHoles(std::vector<Point> const& pointList,
 	std::vector<std::uint16_t> indexList, std::vector<std::vector<std::uint16_t>> holeList);
+	
+std::vector<std::uint16_t> earClipping(std::vector<Point> const& pointList,
+	std::vector<std::uint16_t> const& polygon);
 
 }
 

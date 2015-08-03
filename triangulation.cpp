@@ -142,8 +142,7 @@ void updateEarState(VertexNode* node, PointList const& pointList)
 	auto&& b(pointList[node->index]);
 	auto&& c(pointList[node->next->index]);
 	
-	auto current=node->next->next;
-	while (current!=node->prev)
+	for (auto current=node->next->next; current!=node->prev; current=current->next)
 	{
 		if (!current->isReflex)
 			continue;
@@ -261,7 +260,7 @@ IndexList triangulation::removeHoles(PointList const& pointList,
 	return indexList;
 }
 
-IndexList earClipping(PointList const& pointList, IndexList const& indexList)
+IndexList triangulation::earClipping(PointList const& pointList, IndexList const& indexList)
 {
 	std::vector<VertexNode> nodeList(indexList.size());
 	IndexList resultList;
@@ -276,7 +275,6 @@ IndexList earClipping(PointList const& pointList, IndexList const& indexList)
 	for (int i=0; i<N; ++i)
 	{
 		int j=(i+1)%N;
-		int k=(i+2)%N;
 		
 		auto& node0(nodeList[i]);
 		auto& node1(nodeList[j]);
@@ -300,6 +298,7 @@ IndexList earClipping(PointList const& pointList, IndexList const& indexList)
 			throw std::invalid_argument("Polygon is not simple");
 		
 		current = clipEar(resultList, current, pointList);
+		--N;
 	}
 	
 	// Only a line segment left now
