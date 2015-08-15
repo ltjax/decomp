@@ -1,6 +1,13 @@
 cmake_minimum_required (VERSION 3.1.0)
-project (triangulation)
-set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -stdlib=libc++ -std=c++11" )
+project (decomp)
+
+# Enable C++11 for Clang
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
+endif()
+
+# Build the main library
 add_library(triangulation triangulation.hpp triangulation.cpp)
 
 include(CTest)

@@ -9,14 +9,16 @@ namespace triangulation {
 class Point
 {
 public:
-	Point(double v=0.0)
-	: data{v, v}
+	explicit Point(double v=0.0)
 	{
+		data[0]=v;
+		data[1]=v;
 	}
 	
 	Point(double x, double y)
-	: data{x, y}
 	{
+		data[0]=x;
+		data[1]=y;
 	}
 	
 	double& operator[](int i)
