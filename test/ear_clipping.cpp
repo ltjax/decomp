@@ -1,6 +1,6 @@
 #include "../triangulation.hpp"
 
-using namespace triangulation;
+using namespace decomp;
 
 int main()
 {
@@ -14,6 +14,9 @@ int main()
 	};
 	
 	auto triangleList = earClipping(pointList, indexList);
+
+	if (triangleList.size()!=8*3)
+		return EXIT_FAILURE;
 	
-	return 0;
+	return EXIT_SUCCESS;
 }

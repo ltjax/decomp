@@ -1,7 +1,7 @@
 
 #include "../triangulation.hpp"
 
-using namespace triangulation;
+using namespace decomp;
 
 int main()
 {
@@ -20,7 +20,7 @@ int main()
 	
 	std::vector<std::uint16_t> correctPolygon={2, 3, 0, 1, 2, 6, 5, 4, 7, 6};
 	if (!std::equal(correctPolygon.begin(), correctPolygon.end(), mergedPolygon.begin()))
-		return -1;
+		return EXIT_FAILURE;
 	
-	return 0;
+	return EXIT_SUCCESS;
 }

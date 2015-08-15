@@ -8,13 +8,19 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 endif()
 
 # Build the main library
-add_library(decomp triangulation.hpp triangulation.cpp)
+add_library(decomp 
+  convex_decomposition.cpp
+  convex_decomposition.hpp
+  triangulation.hpp 
+  triangulation.cpp
+)
 
 include(CTest)
 
 set(TESTS
   remove_holes
   ear_clipping
+  half_edge
 )
 
 foreach(test ${TESTS})
