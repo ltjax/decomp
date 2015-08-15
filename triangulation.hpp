@@ -1,10 +1,10 @@
-#ifndef TRIANGULATION_HEADER
-#define TRIANGULATION_HEADER
+#ifndef LIB_DECOMP_HEADER
+#define LIB_DECOMP_HEADER
 
 #include <cstdint>
 #include <vector>
 
-namespace triangulation {
+namespace decomp {
 
 class Point
 {

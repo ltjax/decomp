@@ -8,7 +8,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 endif()
 
 # Build the main library
-add_library(triangulation triangulation.hpp triangulation.cpp)
+add_library(decomp triangulation.hpp triangulation.cpp)
 
 include(CTest)
 
@@ -19,6 +19,6 @@ set(TESTS
 
 foreach(test ${TESTS})
 	add_executable(test_${test} test/${test}.cpp)
-	target_link_libraries(test_${test} triangulation)
+	target_link_libraries(test_${test} decomp)
 	add_test(NAME ${test} COMMAND test_${test})
 endforeach()

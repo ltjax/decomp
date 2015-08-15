@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <cmath>
 
-using namespace triangulation;
+using namespace decomp;
 
 namespace {
 
@@ -185,7 +185,7 @@ VertexNode* clipEar(IndexList& resultList, VertexNode* ear, PointList const& poi
 
 }
 
-IndexList triangulation::removeHoles(PointList const& pointList,
+IndexList decomp::removeHoles(PointList const& pointList,
 	IndexList indexList, std::vector<IndexList> holeList)
 {
 	while (!holeList.empty())
@@ -260,7 +260,7 @@ IndexList triangulation::removeHoles(PointList const& pointList,
 	return indexList;
 }
 
-IndexList triangulation::earClipping(PointList const& pointList, IndexList const& indexList)
+IndexList decomp::earClipping(PointList const& pointList, IndexList const& indexList)
 {
 	std::vector<VertexNode> nodeList(indexList.size());
 	IndexList resultList;
