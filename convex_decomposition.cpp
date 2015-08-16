@@ -12,7 +12,7 @@ EdgeID getEdgeID(std::uint16_t a, std::uint16_t b)
 
 }
 
-std::vector<decomp::HalfEdge> decomp::buildHalfEdgeGraph(std::vector<std::uint16_t> const& triangleList)
+std::vector<std::unique_ptr<decomp::HalfEdge>> decomp::buildHalfEdgeGraph(std::vector<std::uint16_t> const& triangleList)
 {
 	if (triangleList.size()%3!=0)
 	{
@@ -20,10 +20,14 @@ std::vector<decomp::HalfEdge> decomp::buildHalfEdgeGraph(std::vector<std::uint16
 	}
 
 	using OpenEdgeMap=std::map<EdgeID, HalfEdge*>;
-	std::vector<HalfEdge> halfEdgeList;
+	std::vector<std::unique_ptr<decomp::HalfEdge>> halfEdgeList;
 	OpenEdgeMap openEdgeList;
 	halfEdgeList.resize(triangleList.size());
+
 	int const N=triangleList.size();
+
+	for (int i=0; i<N; ++i)
+		halfEdgeList[i].reset(new HalfEdge);
 
 	for (int i=0; (i+2)<N; i+=3)
 	{
@@ -33,22 +37,22 @@ std::vector<decomp::HalfEdge> decomp::buildHalfEdgeGraph(std::vector<std::uint16
 			auto a=i+j;
 			auto b=i+(j+1)%3;
 
-			halfEdgeList[a].vertex=triangleList[a];
-			halfEdgeList[a].next=&halfEdgeList[b];
+			halfEdgeList[a]->vertex=triangleList[a];
+			halfEdgeList[a]->next=halfEdgeList[b].get();
 
 			// Check if we have an open partner for this edge
 			auto edgeID=getEdgeID(triangleList[a], triangleList[b]);
-			auto inserted=openEdgeList.insert({edgeID, &halfEdgeList[a]});
+			auto inserted=openEdgeList.insert({edgeID, halfEdgeList[a].get()});
 			if (!inserted.second)
 			{
 				// We do! - Join them and erase from the open edges
-				inserted.first->second->partner=&halfEdgeList[a];
-				halfEdgeList[a].partner=inserted.first->second;
+				inserted.first->second->partner=halfEdgeList[a].get();
+				halfEdgeList[a]->partner=inserted.first->second;
 				openEdgeList.erase(inserted.first);
 			}
 			else
 			{
-				halfEdgeList[a].partner=nullptr;
+				halfEdgeList[a]->partner=nullptr;
 			}
 		}
 	}

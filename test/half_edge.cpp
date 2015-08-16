@@ -17,19 +17,19 @@ int main()
 
 	for (auto&& edge : graph)
 	{
-		TEST_ASSERT(edge.next!=nullptr);
+		TEST_ASSERT(edge->next!=nullptr);
 
-		if (edge.vertex == 2 && edge.next->vertex == 0)
+		if (edge->vertex == 2 && edge->next->vertex == 0)
 		{
-			TEST_ASSERT(edge.partner && edge.partner->partner==&edge && edge.partner->vertex==0&&edge.partner->next->vertex==2);
+			TEST_ASSERT(edge->partner && edge->partner->partner==edge.get() && edge->partner->vertex==0&&edge->partner->next->vertex==2);
 		}
-		else if (edge.vertex == 0 && edge.next->vertex == 2)
+		else if (edge->vertex == 0 && edge->next->vertex == 2)
 		{
-			TEST_ASSERT(edge.partner && edge.partner->partner==&edge && edge.partner->vertex==2&&edge.partner->next->vertex==0);
+			TEST_ASSERT(edge->partner && edge->partner->partner==edge.get() && edge->partner->vertex==2&&edge->partner->next->vertex==0);
 		}
 		else
 		{
-			TEST_ASSERT(edge.partner==nullptr);
+			TEST_ASSERT(edge->partner==nullptr);
 		}
 	}
 

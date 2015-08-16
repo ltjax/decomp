@@ -2,6 +2,7 @@
 #define LIB_DECOMP_CONVEX_DECOMPOSITION
 
 #include "triangulation.hpp"
+#include <memory>
 
 namespace decomp {
 
@@ -11,7 +12,7 @@ struct HalfEdge
 	HalfEdge*		partner;
 	HalfEdge*		next;
 };
-std::vector<HalfEdge> buildHalfEdgeGraph(std::vector<std::uint16_t> const& triangleList);
+std::vector<std::unique_ptr<HalfEdge>> buildHalfEdgeGraph(std::vector<std::uint16_t> const& triangleList);
 
 //std::vector<std::vector<std::uint16_t>> hertelMehlhorn(std::vector<Point> const& pointList,
 //										std::vector<std::uint16_t> const& triangleList);
