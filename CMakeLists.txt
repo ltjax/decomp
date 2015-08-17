@@ -21,6 +21,7 @@ set(TESTS
   remove_holes
   ear_clipping
   half_edge
+  decomposition
 )
 
 foreach(test ${TESTS})

@@ -1,5 +1,9 @@
 #include "convex_decomposition.hpp"
 #include <map>
+#include <set>
+#include <cassert>
+
+using namespace decomp;
 
 namespace {
 
@@ -10,9 +14,114 @@ EdgeID getEdgeID(std::uint16_t a, std::uint16_t b)
 	return (b<a) ? std::make_pair(b, a) : std::make_pair(a, b);
 }
 
+EdgeID getEdgeID(HalfEdge* edge)
+{
+	return getEdgeID(edge->vertex, edge->next->vertex);
 }
 
-std::vector<std::unique_ptr<decomp::HalfEdge>> decomp::buildHalfEdgeGraph(std::vector<std::uint16_t> const& triangleList)
+// Internal angle is 180deg or smaller
+bool isInternallyConvex(Point const& a, Point const& b, Point const& c)
+{
+	auto left=c-a;
+	auto right=b-a;
+
+	// This is the same as determinant >= 0
+	return right[0]*left[1]>=right[1]*left[0];
+
+}
+
+bool isEdgeRemoveable(std::vector<Point> const& pointList, decomp::HalfEdge* edge)
+{
+	if (!edge->partner)
+		return false;
+	
+	// This is the same as determinant >= 0
+	return isInternallyConvex(pointList[edge->vertex], pointList[edge->partner->next->next->vertex], pointList[edge->next->next->vertex]);
+}
+
+template <class T>
+inline bool contains(std::set<T> const& c, T const& e)
+{
+	return c.find(e)!=c.end();
+}
+
+inline HalfEdge* representative(HalfEdge* e)
+{
+	if (e->partner && e->vertex>e->partner->vertex)
+		return e->partner;
+	else
+		return e;
+}
+
+HalfEdge* getUndeletedLeft(std::set<EdgeID> const& deletedEdgeSet, HalfEdge* edge)
+{
+	auto edge_right=edge;
+	auto edge_left=edge->next->next;
+
+	while (contains(deletedEdgeSet, getEdgeID(edge_left->vertex, edge_right->vertex)))
+	{
+		assert(edge_left->partner!=nullptr);
+		edge_right=edge_left->partner;
+		edge_left=edge_right->next->next;
+	}
+
+	return edge_left;
+}
+
+HalfEdge* getUndeletedRight(std::set<EdgeID> const& deletedEdgeSet, HalfEdge* edge)
+{
+	do
+	{
+		edge=edge->partner->next;
+
+	} while (contains(deletedEdgeSet, getEdgeID(edge->vertex, edge->next->vertex)));
+
+	return edge;
+
+}
+
+HalfEdge* pickEdgeToRemove(std::set<HalfEdge*>& removeableEdgeSet)
+{
+	auto edgeToRemove=*removeableEdgeSet.begin();
+	removeableEdgeSet.erase(removeableEdgeSet.begin());
+
+	return edgeToRemove;
+}
+
+void updateEdge(HalfEdge* edgeToRemove,
+				std::set<HalfEdge*>& removableEdgeSet,
+				std::set<EdgeID> const& deletedEdgeSet,
+				std::vector<Point> const& pointList)
+{
+	auto left=getUndeletedLeft(deletedEdgeSet, edgeToRemove);
+	auto right=getUndeletedRight(deletedEdgeSet, edgeToRemove);
+
+	if (contains(removableEdgeSet, representative(left)))
+	{
+		// Check if this is still removable
+		auto leftOfLeft=getUndeletedLeft(deletedEdgeSet, left->partner);
+
+		if (leftOfLeft->partner==right||leftOfLeft->partner==edgeToRemove||
+			!isInternallyConvex(pointList[edgeToRemove->vertex], pointList[right->next->vertex], pointList[leftOfLeft->vertex]))
+		{
+			removableEdgeSet.erase(representative(left));
+		}
+	}
+
+	if (contains(removableEdgeSet, representative(right)))
+	{
+		auto rightOfRight=getUndeletedRight(deletedEdgeSet, right);
+		if (rightOfRight->partner==left||rightOfRight==edgeToRemove||
+			!isInternallyConvex(pointList[edgeToRemove->vertex], pointList[rightOfRight->next->vertex], pointList[left->vertex]))
+		{
+			removableEdgeSet.erase(representative(right));
+		}
+	}
+}
+
+}
+
+std::vector<std::unique_ptr<HalfEdge>> decomp::buildHalfEdgeGraph(std::vector<std::uint16_t> const& triangleList)
 {
 	if (triangleList.size()%3!=0)
 	{
@@ -60,8 +169,64 @@ std::vector<std::unique_ptr<decomp::HalfEdge>> decomp::buildHalfEdgeGraph(std::v
 	return halfEdgeList;
 }
 
-//std::vector<std::vector<std::uint16_t>> decomp::hertelMehlhorn(
-//	std::vector<Point> const& pointList, std::vector<std::uint16_t> const& triangleList)
-//{
-//
-//}
+std::vector<std::vector<std::uint16_t>> decomp::hertelMehlhorn(
+	std::vector<Point> const& pointList, std::vector<std::uint16_t> const& triangleList)
+{
+	std::set<HalfEdge*> removableEdgeSet;
+
+	auto graph=buildHalfEdgeGraph(triangleList);
+
+	for (auto&& edge : graph)
+	{
+		if (edge->vertex>edge->next->vertex)
+			continue;
+
+		if (isEdgeRemoveable(pointList, edge.get()))
+		{
+			removableEdgeSet.insert(edge.get());
+		}
+	}
+
+	std::set<EdgeID> deletedEdgeSet;
+
+	while (!removableEdgeSet.empty())
+	{
+		auto edgeToRemove=pickEdgeToRemove(removableEdgeSet);
+
+		updateEdge(edgeToRemove, removableEdgeSet, deletedEdgeSet, pointList);
+		updateEdge(edgeToRemove->partner, removableEdgeSet, deletedEdgeSet, pointList);
+
+		deletedEdgeSet.insert(getEdgeID(edgeToRemove->vertex, edgeToRemove->next->vertex));
+	}
+
+	std::vector<std::vector<std::uint16_t>> resultList;
+	std::set<HalfEdge*> visited;
+
+	for (auto&& edge : graph)
+	{
+		// Don't extract twice
+		if (contains(visited, edge.get()))
+			continue;
+
+		// Don't extract deleted
+		if (contains(deletedEdgeSet, getEdgeID(edge.get())))
+			continue;
+
+		std::vector<std::uint16_t> polygon;
+		auto current=edge.get();
+		do
+		{
+			visited.insert(current);
+			polygon.push_back(current->vertex);
+
+			current=current->next;
+			while (contains(deletedEdgeSet, getEdgeID(current)))
+				   current=current->partner->next;
+
+		} while (current!=edge.get());
+
+		resultList.push_back(std::move(polygon));
+	}
+
+	return resultList;
+}
