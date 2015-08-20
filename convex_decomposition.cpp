@@ -295,3 +295,14 @@ std::vector<std::vector<std::uint16_t>> decomp::hertelMehlhorn(
 	// Extract a list of polygons an return it
 	return extractPolygonList(graph, deletedEdgeSet);
 }
+
+std::vector<IndexList> decomp::decompose(PointList const& pointList,
+										 IndexList simplePolygon,
+									     std::vector<IndexList> holeList)
+{
+	auto simpleWithoutHoles=removeHoles(pointList, simplePolygon, holeList);
+
+	auto triangleList=earClipping(pointList, simpleWithoutHoles);
+
+	return hertelMehlhorn(pointList, triangleList);
+}

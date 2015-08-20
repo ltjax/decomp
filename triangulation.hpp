@@ -82,11 +82,14 @@ inline double dot(Point const& lhs, Point const& rhs)
 	return lhs[0]*rhs[0]+lhs[1]*rhs[1];
 }
 
-std::vector<std::uint16_t> removeHoles(std::vector<Point> const& pointList,
-	std::vector<std::uint16_t> indexList, std::vector<std::vector<std::uint16_t>> holeList);
+using PointList=std::vector<Point>;
+using IndexList=std::vector<std::uint16_t>;
+
+IndexList removeHoles(PointList const& pointList,
+					  IndexList indexList, std::vector<IndexList> holeList);
 	
-std::vector<std::uint16_t> earClipping(std::vector<Point> const& pointList,
-	std::vector<std::uint16_t> const& polygon);
+IndexList earClipping(PointList const& pointList,
+					  IndexList const& polygon);
 
 }
 

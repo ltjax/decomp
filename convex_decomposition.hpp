@@ -12,10 +12,17 @@ struct HalfEdge
 	HalfEdge*		partner;
 	HalfEdge*		next;
 };
-std::vector<std::unique_ptr<HalfEdge>> buildHalfEdgeGraph(std::vector<std::uint16_t> const& triangleList);
 
-std::vector<std::vector<std::uint16_t>> hertelMehlhorn(std::vector<Point> const& pointList,
-										std::vector<std::uint16_t> const& triangleList);
+
+std::vector<std::unique_ptr<HalfEdge>> buildHalfEdgeGraph(IndexList const& triangleList);
+
+std::vector<IndexList> hertelMehlhorn(PointList const& pointList,
+									  IndexList const& triangleList);
+
+std::vector<IndexList> decompose(PointList const& pointList,
+								 IndexList simplePolygon,
+								 std::vector<IndexList> holeList={});
+
 }
 
 #endif

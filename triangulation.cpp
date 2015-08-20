@@ -8,8 +8,6 @@ using namespace decomp;
 
 namespace {
 
-typedef std::vector<Point> PointList;
-typedef std::vector<std::uint16_t> IndexList;
 
 std::uint16_t findRightmostPoint(PointList const& pointList, IndexList const& polygon)
 {
