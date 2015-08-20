@@ -121,9 +121,9 @@ void updateEarState(VertexNode* node, PointList const& pointList)
 		return;
 	}
 	
-	auto&& a(pointList[node->prev->index]);
-	auto&& b(pointList[node->index]);
-	auto&& c(pointList[node->next->index]);
+	auto const& a(pointList[node->prev->index]);
+	auto const& b(pointList[node->index]);
+	auto const& c(pointList[node->next->index]);
 	
 	for (auto current=node->next->next; current!=node->prev; current=current->next)
 	{
@@ -267,10 +267,10 @@ IndexList decomp::earClipping(PointList const& pointList, IndexList const& index
 		node0.index = indexList[i];
 	}
 	
-	for (auto&& node : nodeList)
+	for (auto& node : nodeList)
 		updateNodeType(&node, pointList);
 	
-	for (auto&& node : nodeList)
+	for (auto& node : nodeList)
 		updateEarState(&node, pointList);
 	
 	auto current = &nodeList.front();
