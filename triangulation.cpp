@@ -166,6 +166,100 @@ VertexNode* clipEar(IndexList& resultList, VertexNode* ear, PointList const& poi
 	return ear->next;
 }
 
+void extractRightmostHole(PointList const& pointList, std::vector<IndexList>& holeList, IndexList& hole, int& rightmostPoint)
+{
+	// Find the rightmost hole point
+	auto rightmostHole=holeList.end();
+
+	for (auto i=holeList.begin(); i!=holeList.end(); ++i)
+	{
+		int localRightmost=findRightmostPoint(pointList, *i);
+
+		if (rightmostHole==holeList.end()||
+			pointList[(*rightmostHole)[rightmostPoint]].x() < pointList[(*i)[localRightmost]].x())
+		{
+			rightmostHole=i;
+			rightmostPoint=localRightmost;
+		}
+	}
+
+	hole=std::move(*rightmostHole);
+	holeList.erase(rightmostHole);
+}
+
+int findVisiblePoint(PointList const& pointList, IndexList const& indexList, Point const& from, Point const& idealDirection)
+{
+	auto getPoint=[&](int i)
+	{
+		return pointList[indexList[i]];
+	};
+
+	int bestPoint=-1;
+	int N=indexList.size();
+	for (int i=0; i<N; ++i)
+	{
+		// Look for points to the right side of our 'from'
+		if (pointList[indexList[i]].x()<=from.x())
+			continue;
+
+		int const next=(i+1)%N;
+		int const previous=(i+N-1)%N;
+
+		auto const& rimPoint=getPoint(i);
+
+		// Simple visibility test - can give false positives, hence the more detailed test later
+		if (!inCone(getPoint(previous), rimPoint, getPoint(next), from))
+		{
+			continue;
+		}
+
+		// Try from smallest angle with the idealDirection
+		if (bestPoint>=0&&dot(normalize(rimPoint-from), idealDirection) <
+			dot(normalize(getPoint(bestPoint)-from), idealDirection))
+		{
+			continue;
+		}
+
+		// Make sure the point is not occluded by other edges
+		// This is the most expensive test, hence performed last
+		if (!pointVisibleFrom(pointList, indexList, i, from))
+		{
+			continue;
+		}
+
+		bestPoint=i;
+	}
+
+	assert(bestPoint!=-1);
+	return bestPoint;
+}
+
+void removeHole(PointList const& pointList,
+				IndexList& indexList, std::vector<IndexList>& holeList)
+{
+	// Find the rightmost hole point
+	int rightmostPoint=0;
+	IndexList hole;
+	extractRightmostHole(pointList, holeList, hole, rightmostPoint);
+
+	Point holePoint=pointList[hole[rightmostPoint]];
+	Point bestDirection=normalize(normalize(holePoint-pointList[hole[(rightmostPoint+1)%hole.size()]])+
+								  normalize(holePoint-pointList[hole[(rightmostPoint+hole.size()-1)%hole.size()]]));
+
+	// Find a point to connect that to
+	int bestPoint=findVisiblePoint(pointList, indexList, holePoint, bestDirection);
+
+	// Splice the hole vertex into the outer polygon by first rotating
+	// the insertion point to the end and then adding the hole vertices plus
+	// the additional two edges.
+	// Note that the clockwise ordering of the hole is correctly turned into
+	// counter-clockwise here, since the polygon is semantically inverted.
+	std::rotate(indexList.begin(), indexList.begin()+bestPoint, indexList.end());
+	indexList.push_back(indexList.front());
+	indexList.insert(indexList.end(), hole.begin()+rightmostPoint, hole.end());
+	indexList.insert(indexList.end(), hole.begin(), hole.begin()+rightmostPoint+1);
+}
+
 }
 
 IndexList decomp::removeHoles(PointList const& pointList,
@@ -173,71 +267,7 @@ IndexList decomp::removeHoles(PointList const& pointList,
 {
 	while (!holeList.empty())
 	{
-		// Find the rightmost hole point
-		auto rightmostHole = holeList.end();
-		std::uint16_t rightmostPoint =0;
-		
-		for (auto i=holeList.begin(); i!=holeList.end(); ++i)
-		{
-			int localRightmost = findRightmostPoint(pointList, *i);
-			
-			if (rightmostHole==holeList.end()||
-				pointList[(*rightmostHole)[rightmostPoint]].x() < pointList[(*i)[localRightmost]].x())
-			{
-				rightmostHole=i;
-				rightmostPoint=localRightmost;
-			}
-		}
-		
-		IndexList hole = std::move(*rightmostHole);
-		holeList.erase(rightmostHole);
-		Point holePoint = pointList[hole[rightmostPoint]];
-		Point bestDirection = normalize(normalize(holePoint-pointList[hole[(rightmostPoint+1)%hole.size()]])+
-			normalize(holePoint-pointList[hole[(rightmostPoint+hole.size()-1)%hole.size()]]));
-		
-		// Find a point to connect that to
-		auto getPoint=[&](int i)
-		{
-			return pointList[indexList[i]];
-		};
-		
-		int bestPoint=-1;
-		int N=indexList.size();
-		for (int i=0; i<N; ++i)
-		{
-			if (pointList[indexList[i]].x() <= holePoint.x())
-				continue;
-			
-			int const next=(i+1)%N;
-			int const previous=(i+N-1)%N;
-			
-			auto const& rimPoint=getPoint(i);
-			
-			if (!inCone(getPoint(previous), rimPoint, getPoint(next), holePoint))
-			{
-				continue;
-			}
-			
-			if (bestPoint >= 0 && dot(normalize(rimPoint-holePoint), bestDirection) <
-								  dot(normalize(getPoint(bestPoint)-holePoint), bestDirection))
-			{
-				continue;
-			}
-			
-			if (!pointVisibleFrom(pointList, indexList, i, holePoint))
-			{
-				continue;
-			}
-			
-			bestPoint=i;
-		}
-		
-		assert(bestPoint!=-1);
-		
-		std::rotate(indexList.begin(), indexList.begin()+bestPoint, indexList.end());
-		indexList.push_back(indexList.front());
-		indexList.insert(indexList.end(), hole.begin()+rightmostPoint, hole.end());
-		indexList.insert(indexList.end(), hole.begin(), hole.begin()+rightmostPoint+1);
+		removeHole(pointList, indexList, holeList);
 	}
 	
 	return indexList;
@@ -253,8 +283,12 @@ IndexList decomp::earClipping(PointList const& pointList, IndexList const& index
 	if (N < 3)
 		throw std::invalid_argument("Polygon needs at least 3 vertices");
 	
+	// Simple polygons with N vertices are decomposed
+	// into N-2 triangles of 3 indices each
 	resultList.reserve((N-2)*3);
 	
+	// Setup an initial circular linked list of all vertices
+	// for constant-time ear removal later
 	for (int i=0; i<N; ++i)
 	{
 		int j=(i+1)%N;
@@ -267,12 +301,16 @@ IndexList decomp::earClipping(PointList const& pointList, IndexList const& index
 		node0.index = indexList[i];
 	}
 	
+	// Figure out which nodes are initially reflex and convex
 	for (auto& node : nodeList)
 		updateNodeType(&node, pointList);
 	
+	// Check which are ears - note that this
+	// needs reflex and convex flags set up correctly
 	for (auto& node : nodeList)
 		updateEarState(&node, pointList);
 	
+	// Clip off ears while the polygon still has any
 	auto current = &nodeList.front();
 	while (N >= 3)
 	{
