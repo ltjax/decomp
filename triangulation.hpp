@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <vector>
+#include <cmath>
 
 namespace decomp {
 
@@ -63,6 +64,22 @@ inline Point operator-(Point const& lhs, Point const& rhs)
 {
 	Point result(lhs);
 	return result -= rhs;
+}
+
+inline double squared(Point const& p)
+{
+	return p[0]*p[0]+p[1]*p[1];
+}
+
+inline Point normalize(Point const& p)
+{
+	double length=std::sqrt(squared(p));
+	return{p.x()/length, p.y()/length};
+}
+
+inline double dot(Point const& lhs, Point const& rhs)
+{
+	return lhs[0]*rhs[0]+lhs[1]*rhs[1];
 }
 
 std::vector<std::uint16_t> removeHoles(std::vector<Point> const& pointList,

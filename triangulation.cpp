@@ -49,16 +49,6 @@ bool triangleContains(Point const& a, Point const& b, Point const& c, Point cons
 	return !isClockwise(a, b, tested) && !isClockwise(b, c, tested) && !isClockwise(c, a, tested);
 }
 
-inline double squared(Point const& p)
-{
-	return p[0]*p[0]+p[1]*p[1];
-}
-
-Point normalize(Point const& p)
-{
-	double length = std::sqrt(squared(p));
-	return {p.x()/length, p.y()/length};
-}
 
 bool segmentsIntersect(Point const& a, Point const& b, Point const& c, Point const& d)
 {
@@ -104,11 +94,6 @@ bool pointVisibleFrom(PointList const& pointList, IndexList const& indexList, in
 	}
 	
 	return true;
-}
-
-double dot(Point const& lhs, Point const& rhs)
-{
-	return lhs[0]*rhs[0]+lhs[1]*rhs[1];
 }
 
 struct VertexNode

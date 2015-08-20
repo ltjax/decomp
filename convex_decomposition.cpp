@@ -2,6 +2,7 @@
 #include <map>
 #include <set>
 #include <cassert>
+#include <algorithm>
 
 using namespace decomp;
 
@@ -80,12 +81,50 @@ HalfEdge* getUndeletedRight(std::set<EdgeID> const& deletedEdgeSet, HalfEdge* ed
 
 }
 
-HalfEdge* pickEdgeToRemove(std::set<HalfEdge*>& removeableEdgeSet)
+double getSmallestAdjacentAngle(HalfEdge* edge,
+						 std::set<EdgeID> const& deletedEdgeSet,
+						 std::vector<Point> const& pointList)
 {
-	auto edgeToRemove=*removeableEdgeSet.begin();
-	removeableEdgeSet.erase(removeableEdgeSet.begin());
+	auto leftEdge=getUndeletedLeft(deletedEdgeSet, edge);
+	auto rightEdge=getUndeletedRight(deletedEdgeSet, edge);
 
-	return edgeToRemove;
+	auto centerPoint=pointList[edge->vertex];
+	auto forwardPoint=pointList[edge->next->vertex];
+	auto leftPoint=pointList[leftEdge->vertex];
+	auto rightPoint=pointList[rightEdge->next->vertex];
+
+	auto forwardDirection=normalize(forwardPoint-centerPoint);
+
+	return std::max(dot(normalize(leftPoint-centerPoint), forwardDirection),
+					dot(normalize(rightPoint-centerPoint), forwardDirection));
+}
+
+// FIXME: a priority queue would be nice here
+HalfEdge* pickEdgeToRemove(std::set<HalfEdge*>& removeableEdgeSet,
+						   std::set<EdgeID> const& deletedEdgeSet,
+						   std::vector<Point> const& pointList)
+{
+	double bestScore=0;
+	std::set<HalfEdge*>::iterator bestEdge=removeableEdgeSet.end();
+
+	for (auto i=removeableEdgeSet.begin(); i!=removeableEdgeSet.end(); ++i)
+	{
+		auto candidate=*i;
+
+		auto score=std::max(getSmallestAdjacentAngle(candidate, deletedEdgeSet, pointList),
+							getSmallestAdjacentAngle(candidate->partner, deletedEdgeSet, pointList));
+
+		if (score >= bestScore)
+		{
+			bestScore=score;
+			bestEdge=i;
+		}
+	}
+
+	assert(bestEdge!=removeableEdgeSet.end());
+	auto result=*bestEdge;
+	removeableEdgeSet.erase(bestEdge);
+	return result;
 }
 
 void updateEdge(HalfEdge* edgeToRemove,
@@ -179,7 +218,7 @@ std::set<EdgeID> deleteEdges(std::set<HalfEdge*> &removableEdgeSet, std::vector<
 
 	while (!removableEdgeSet.empty())
 	{
-		auto edgeToRemove=pickEdgeToRemove(removableEdgeSet);
+		auto edgeToRemove=pickEdgeToRemove(removableEdgeSet, deletedEdgeSet, pointList);
 
 		updateEdge(edgeToRemove, removableEdgeSet, deletedEdgeSet, pointList);
 		updateEdge(edgeToRemove->partner, removableEdgeSet, deletedEdgeSet, pointList);
