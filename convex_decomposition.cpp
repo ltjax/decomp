@@ -118,6 +118,77 @@ void updateEdge(HalfEdge* edgeToRemove,
 		}
 	}
 }
+std::set<HalfEdge*> getRemovableEdgeSet(std::vector<Point> const& pointList,
+										std::vector<std::unique_ptr<HalfEdge>> const& graph)
+{
+	std::set<HalfEdge*> removableEdgeSet;
+
+	for (auto&& edge:graph)
+	{
+		if (edge->vertex>edge->next->vertex)
+			continue;
+
+		if (isEdgeRemoveable(pointList, edge.get()))
+		{
+			removableEdgeSet.insert(edge.get());
+		}
+	}
+
+	return removableEdgeSet;
+}
+
+std::vector<std::vector<std::uint16_t>> extractPolygonList(
+	std::vector<std::unique_ptr<HalfEdge>> const& graph,
+	std::set<EdgeID> const& deletedEdgeSet)
+{
+	std::vector<std::vector<std::uint16_t>> resultList;
+	std::set<HalfEdge*> visited;
+
+	for (auto&& edge:graph)
+	{
+		// Don't extract twice
+		if (contains(visited, edge.get()))
+			continue;
+
+		// Don't extract deleted
+		if (contains(deletedEdgeSet, getEdgeID(edge.get())))
+			continue;
+
+		std::vector<std::uint16_t> polygon;
+		auto current=edge.get();
+		do
+		{
+			visited.insert(current);
+			polygon.push_back(current->vertex);
+
+			current=current->next;
+			while (contains(deletedEdgeSet, getEdgeID(current)))
+				current=current->partner->next;
+
+		} while (current!=edge.get());
+
+		resultList.push_back(std::move(polygon));
+	}
+
+	return resultList;
+}
+
+std::set<EdgeID> deleteEdges(std::set<HalfEdge*> &removableEdgeSet, std::vector<Point> const& pointList)
+{
+	std::set<EdgeID> deletedEdgeSet;
+
+	while (!removableEdgeSet.empty())
+	{
+		auto edgeToRemove=pickEdgeToRemove(removableEdgeSet);
+
+		updateEdge(edgeToRemove, removableEdgeSet, deletedEdgeSet, pointList);
+		updateEdge(edgeToRemove->partner, removableEdgeSet, deletedEdgeSet, pointList);
+
+		deletedEdgeSet.insert(getEdgeID(edgeToRemove->vertex, edgeToRemove->next->vertex));
+	}
+	
+	return deletedEdgeSet;
+}
 
 }
 
@@ -172,61 +243,16 @@ std::vector<std::unique_ptr<HalfEdge>> decomp::buildHalfEdgeGraph(std::vector<st
 std::vector<std::vector<std::uint16_t>> decomp::hertelMehlhorn(
 	std::vector<Point> const& pointList, std::vector<std::uint16_t> const& triangleList)
 {
-	std::set<HalfEdge*> removableEdgeSet;
-
+	// Extract connectivity information
 	auto graph=buildHalfEdgeGraph(triangleList);
+	
+	// Find out which edges are removable in general, i.e. which can be removed
+	// without creating non-convex corners in a first step.
+	auto removableEdgeSet=getRemovableEdgeSet(pointList, graph);
 
-	for (auto&& edge : graph)
-	{
-		if (edge->vertex>edge->next->vertex)
-			continue;
+	// Figure out which edges to actually remove
+	auto deletedEdgeSet=deleteEdges(removableEdgeSet, pointList);
 
-		if (isEdgeRemoveable(pointList, edge.get()))
-		{
-			removableEdgeSet.insert(edge.get());
-		}
-	}
-
-	std::set<EdgeID> deletedEdgeSet;
-
-	while (!removableEdgeSet.empty())
-	{
-		auto edgeToRemove=pickEdgeToRemove(removableEdgeSet);
-
-		updateEdge(edgeToRemove, removableEdgeSet, deletedEdgeSet, pointList);
-		updateEdge(edgeToRemove->partner, removableEdgeSet, deletedEdgeSet, pointList);
-
-		deletedEdgeSet.insert(getEdgeID(edgeToRemove->vertex, edgeToRemove->next->vertex));
-	}
-
-	std::vector<std::vector<std::uint16_t>> resultList;
-	std::set<HalfEdge*> visited;
-
-	for (auto&& edge : graph)
-	{
-		// Don't extract twice
-		if (contains(visited, edge.get()))
-			continue;
-
-		// Don't extract deleted
-		if (contains(deletedEdgeSet, getEdgeID(edge.get())))
-			continue;
-
-		std::vector<std::uint16_t> polygon;
-		auto current=edge.get();
-		do
-		{
-			visited.insert(current);
-			polygon.push_back(current->vertex);
-
-			current=current->next;
-			while (contains(deletedEdgeSet, getEdgeID(current)))
-				   current=current->partner->next;
-
-		} while (current!=edge.get());
-
-		resultList.push_back(std::move(polygon));
-	}
-
-	return resultList;
+	// Extract a list of polygons an return it
+	return extractPolygonList(graph, deletedEdgeSet);
 }
