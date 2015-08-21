@@ -22,6 +22,7 @@ set(TESTS
   ear_clipping
   half_edge
   decomposition
+  winding
 )
 
 foreach(test ${TESTS})

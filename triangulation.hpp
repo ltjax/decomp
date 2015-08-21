@@ -85,15 +85,27 @@ inline double dot(Point const& lhs, Point const& rhs)
 using PointList=std::vector<Point>;
 using IndexList=std::vector<std::uint16_t>;
 
+enum class Winding
+{
+	Clockwise,
+	CounterClockwise
+};
+
 /** Turn a simple polygon with holes into a simple polygon occupying the same area by
     adding a double edge from each hole connecting it to the outer polygon.
 	The outer polygon's vertex order needs to be counter-clockwise, while all holes need to be clockwise.
 */
 IndexList removeHoles(PointList const& pointList,
 					  IndexList indexList, std::vector<IndexList> holeList);
-	
+
+/** Triangulate a simple polygon using ear-clipping.
+*/
 IndexList earClipping(PointList const& pointList,
 					  IndexList const& polygon);
+
+/** Figure out the winding of a simple polygon.
+*/
+Winding computeWinding(PointList const& pointList, IndexList const& polygon);
 
 }
 

@@ -328,3 +328,20 @@ IndexList decomp::earClipping(PointList const& pointList, IndexList const& index
 	return resultList;
 }
 
+decomp::Winding decomp::computeWinding(PointList const& pointList, IndexList const& polygon)
+{
+	// Compute the signed area using the shoelace algorithm
+	auto N=static_cast<int>(polygon.size());
+	double signedArea=0.0;
+
+	for (int i=0; i<N; ++i)
+	{
+		int j=(i+1)%N;
+		signedArea+=determinant(pointList[polygon[i]], pointList[polygon[j]]);
+	}
+
+	if (signedArea<0.0)
+		return Winding::Clockwise;
+	else // (signedArea>0.0)
+		return Winding::CounterClockwise;
+}
