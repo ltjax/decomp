@@ -3,6 +3,7 @@
 #include <cassert>
 #include <algorithm>
 #include <cmath>
+#include <set>
 
 using namespace decomp;
 
@@ -94,6 +95,17 @@ bool pointVisibleFrom(PointList const& pointList, IndexList const& indexList, in
 	return true;
 }
 
+struct VertexNode;
+
+struct EarLess
+{
+	bool operator()(VertexNode* lhs, VertexNode* rhs);
+};
+
+// Using the order and iterator constancy of the set as
+// simple addressable priority queue
+using EarPriorityQueue=std::multiset<VertexNode*, EarLess>;
+
 struct VertexNode
 {
 	std::uint16_t index;
@@ -101,8 +113,15 @@ struct VertexNode
 	VertexNode* prev;
 	bool isConvex;
 	bool isReflex;
-	bool isEar;
+	bool isEar=false;
+	double biggestAngle;
+	EarPriorityQueue::iterator queueNode;
 };
+
+bool EarLess::operator()(VertexNode* lhs, VertexNode* rhs)
+{
+	return lhs->biggestAngle > rhs->biggestAngle;
+}
 
 void updateNodeType(VertexNode* node, PointList const& pointList)
 {
@@ -110,8 +129,13 @@ void updateNodeType(VertexNode* node, PointList const& pointList)
 	node->isReflex = isClockwise(pointList[node->prev->index], pointList[node->index], pointList[node->next->index]);
 }
 
-void updateEarState(VertexNode* node, PointList const& pointList)
+void updateEarState(VertexNode* node, PointList const& pointList, EarPriorityQueue& queue)
 {
+	// Start by erasing this node's entry in the priority queue
+	// If the node is still an ear, we will reinsert it later
+	if (node->isEar)
+		queue.erase(node->queueNode);
+
 	// A vertex is an ear iff it's convex and no vertices are inside the attached ear
 	// It is sufficient to test only for reflex vertices, as any vertex in the ear implies
 	// that a reflex vertex is also there because the polygon is simple
@@ -137,32 +161,35 @@ void updateEarState(VertexNode* node, PointList const& pointList)
 		}
 	}
 	
+	auto x=b-a;
+	auto y=c-b;
+	auto z=a-c;
+
+	node->biggestAngle=std::min(std::min(-dot(z, x), -dot(x, y)), -dot(y, z));
 	node->isEar=true;
+	node->queueNode=queue.insert(node);
 }
 
-VertexNode* findEar(VertexNode* current)
+VertexNode* findEar(EarPriorityQueue& queue)
 {
-	auto first = current;
-	do
-	{
-		if (current->isEar)
-			return current;
-		
-		current = current->next;
-	} while (current != first);
-	
-	return nullptr;
+	if (queue.empty())
+		return nullptr;
+
+	// Get top and pop
+	auto result=*queue.begin();
+	queue.erase(queue.begin());
+	return result;
 }
 
-VertexNode* clipEar(IndexList& resultList, VertexNode* ear, PointList const& pointList)
+VertexNode* clipEar(IndexList& resultList, VertexNode* ear, PointList const& pointList, EarPriorityQueue& queue)
 {
 	resultList.insert(resultList.end(), {ear->prev->index, ear->index, ear->next->index});
 	ear->prev->next = ear->next;
 	ear->next->prev = ear->prev;
 	updateNodeType(ear->prev, pointList);
 	updateNodeType(ear->next, pointList);
-	updateEarState(ear->prev, pointList);
-	updateEarState(ear->next, pointList);
+	updateEarState(ear->prev, pointList, queue);
+	updateEarState(ear->next, pointList, queue);
 	return ear->next;
 }
 
@@ -304,21 +331,23 @@ IndexList decomp::earClipping(PointList const& pointList, IndexList const& index
 	// Figure out which nodes are initially reflex and convex
 	for (auto& node : nodeList)
 		updateNodeType(&node, pointList);
+
+	EarPriorityQueue queue;
 	
 	// Check which are ears - note that this
 	// needs reflex and convex flags set up correctly
 	for (auto& node : nodeList)
-		updateEarState(&node, pointList);
+		updateEarState(&node, pointList, queue);
 	
 	// Clip off ears while the polygon still has any
 	auto current = &nodeList.front();
 	while (N >= 3)
 	{
-		current = findEar(current);
+		current = findEar(queue);
 		if (current == nullptr)
 			throw std::invalid_argument("Polygon is not simple");
 		
-		current = clipEar(resultList, current, pointList);
+		current = clipEar(resultList, current, pointList, queue);
 		--N;
 	}
 	
