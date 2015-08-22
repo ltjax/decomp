@@ -37,7 +37,8 @@ bool isEdgeRemoveable(std::vector<Point> const& pointList, decomp::HalfEdge* edg
 		return false;
 	
 	// This is the same as determinant >= 0
-	return isInternallyConvex(pointList[edge->vertex], pointList[edge->partner->next->next->vertex], pointList[edge->next->next->vertex]);
+	return isInternallyConvex(pointList[edge->vertex], pointList[edge->partner->next->next->vertex], pointList[edge->next->next->vertex]) &&
+		isInternallyConvex(pointList[edge->partner->vertex], pointList[edge->next->next->vertex], pointList[edge->partner->next->next->vertex]);
 }
 
 template <class T>
