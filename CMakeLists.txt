@@ -15,18 +15,21 @@ add_library(decomp
   triangulation.cpp
 )
 
-include(CTest)
+# Only enable tests for top-level projects
+if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+  include(CTest)
 
-set(TESTS
-  remove_holes
-  ear_clipping
-  half_edge
-  decomposition
-  winding
-)
+  set(TESTS
+    remove_holes
+    ear_clipping
+    half_edge
+    decomposition
+    winding
+  )
 
-foreach(test ${TESTS})
-	add_executable(test_${test} test/${test}.cpp)
-	target_link_libraries(test_${test} decomp)
-	add_test(NAME ${test} COMMAND test_${test})
-endforeach()
+  foreach(test ${TESTS})
+    add_executable(test_${test} test/${test}.cpp)
+    target_link_libraries(test_${test} decomp)
+    add_test(NAME ${test} COMMAND test_${test})
+  endforeach()
+endif()
