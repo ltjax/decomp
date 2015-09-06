@@ -3,6 +3,7 @@
 #include <set>
 #include <cassert>
 #include <algorithm>
+#include <unordered_map>
 
 using namespace decomp;
 
@@ -19,6 +20,59 @@ EdgeID getEdgeID(HalfEdge* edge)
 {
 	return getEdgeID(edge->vertex, edge->next->vertex);
 }
+
+class EdgePriorityQueue
+{
+public:
+	EdgePriorityQueue()=default;
+
+	bool empty()
+	{
+		return mQueue.empty();
+	}
+
+	HalfEdge* extract()
+	{
+		auto edge=mQueue.begin()->second;
+		mQueue.erase(mQueue.begin());
+		mReverse.erase(edge);
+		return edge;
+	}
+	
+	void insert(HalfEdge* edge, double priority)
+	{
+		auto inserted=mReverse.insert({edge, mQueue.insert({priority, edge})});
+		assert(inserted.second);
+	}
+
+	void update(HalfEdge* edge, double priority)
+	{
+		auto& where(mReverse.find(edge));
+		assert(where!=mReverse.end());
+		mQueue.erase(where->second);
+		where->second=mQueue.insert({priority, edge});
+	}
+
+	void erase(HalfEdge* edge)
+	{
+		auto& where(mReverse.find(edge));
+		assert(where!=mReverse.end());
+		mQueue.erase(where->second);
+		mReverse.erase(where);
+	}
+
+	bool contains(HalfEdge* edge) const
+	{
+		return mReverse.find(edge)!=mReverse.end();
+	}
+
+private:
+	EdgePriorityQueue(EdgePriorityQueue const& rhs)=default;
+
+	using MapType=std::multimap<double, HalfEdge*>;
+	MapType mQueue;
+	std::unordered_map<HalfEdge*, MapType::iterator> mReverse;
+};
 
 // Internal angle is 180deg or smaller
 bool isInternallyConvex(Point const& a, Point const& b, Point const& c)
@@ -82,7 +136,19 @@ HalfEdge* getUndeletedRight(std::set<EdgeID> const& deletedEdgeSet, HalfEdge* ed
 
 }
 
-double getSmallestAdjacentAngle(HalfEdge* edge,
+double getSmallestAdjacentAngleOnHalfEdge(Point centerPoint,
+								Point forwardPoint,
+								Point leftPoint,
+								Point rightPoint)
+{
+	auto forwardDirection=normalize(forwardPoint-centerPoint);
+
+	return std::max(dot(normalize(leftPoint-centerPoint), forwardDirection),
+					dot(normalize(rightPoint-centerPoint), forwardDirection));
+}
+
+
+double getSmallestAdjacentAngleOnHalfEdge(HalfEdge* edge,
 						 std::set<EdgeID> const& deletedEdgeSet,
 						 std::vector<Point> const& pointList)
 {
@@ -94,49 +160,28 @@ double getSmallestAdjacentAngle(HalfEdge* edge,
 	auto leftPoint=pointList[leftEdge->vertex];
 	auto rightPoint=pointList[rightEdge->next->vertex];
 
-	auto forwardDirection=normalize(forwardPoint-centerPoint);
-
-	return std::max(dot(normalize(leftPoint-centerPoint), forwardDirection),
-					dot(normalize(rightPoint-centerPoint), forwardDirection));
+	return getSmallestAdjacentAngleOnHalfEdge(centerPoint, forwardPoint, leftPoint, rightPoint);
 }
 
-// FIXME: a priority queue would be nice here
-HalfEdge* pickEdgeToRemove(std::set<HalfEdge*>& removeableEdgeSet,
-						   std::set<EdgeID> const& deletedEdgeSet,
-						   std::vector<Point> const& pointList)
+double getSmallestAdjacentAngleOnEdge(HalfEdge* edge,
+                                      std::set<EdgeID> const &deletedEdgeSet,
+                                      std::vector<Point> const &pointList)
 {
-	double bestScore=0;
-	std::set<HalfEdge*>::iterator bestEdge=removeableEdgeSet.end();
-
-	for (auto i=removeableEdgeSet.begin(); i!=removeableEdgeSet.end(); ++i)
-	{
-		auto candidate=*i;
-
-		auto score=std::max(getSmallestAdjacentAngle(candidate, deletedEdgeSet, pointList),
-							getSmallestAdjacentAngle(candidate->partner, deletedEdgeSet, pointList));
-
-		if (score >= bestScore)
-		{
-			bestScore=score;
-			bestEdge=i;
-		}
-	}
-
-	assert(bestEdge!=removeableEdgeSet.end());
-	auto result=*bestEdge;
-	removeableEdgeSet.erase(bestEdge);
-	return result;
+	return std::max(
+		getSmallestAdjacentAngleOnHalfEdge(edge, deletedEdgeSet, pointList),
+		getSmallestAdjacentAngleOnHalfEdge(edge->partner, deletedEdgeSet, pointList));
 }
 
 void updateEdge(HalfEdge* edgeToRemove,
-				std::set<HalfEdge*>& removableEdgeSet,
+				EdgePriorityQueue& priorityQueue,
 				std::set<EdgeID> const& deletedEdgeSet,
 				std::vector<Point> const& pointList)
 {
 	auto left=getUndeletedLeft(deletedEdgeSet, edgeToRemove);
 	auto right=getUndeletedRight(deletedEdgeSet, edgeToRemove);
 
-	if (contains(removableEdgeSet, representative(left)))
+
+	if (priorityQueue.contains(representative(left)))
 	{
 		// Check if this is still removable
 		auto leftOfLeft=getUndeletedLeft(deletedEdgeSet, left->partner);
@@ -144,25 +189,35 @@ void updateEdge(HalfEdge* edgeToRemove,
 		if (leftOfLeft->partner==right||leftOfLeft->partner==edgeToRemove||
 			!isInternallyConvex(pointList[edgeToRemove->vertex], pointList[right->next->vertex], pointList[leftOfLeft->vertex]))
 		{
-			removableEdgeSet.erase(representative(left));
+			priorityQueue.erase(representative(left));
+		}
+		else
+		{
+			// Need to update the priority
+			priorityQueue.update(representative(left), getSmallestAdjacentAngleOnEdge(left, deletedEdgeSet, pointList));
+			
 		}
 	}
 
-	if (contains(removableEdgeSet, representative(right)))
+	if (priorityQueue.contains(representative(right)))
 	{
 		auto rightOfRight=getUndeletedRight(deletedEdgeSet, right);
 		if (rightOfRight->partner==left||rightOfRight==edgeToRemove||
 			!isInternallyConvex(pointList[edgeToRemove->vertex], pointList[rightOfRight->next->vertex], pointList[left->vertex]))
 		{
-			removableEdgeSet.erase(representative(right));
+			priorityQueue.erase(representative(right));
+		}
+		else
+		{
+			priorityQueue.update(representative(right), getSmallestAdjacentAngleOnEdge(right, deletedEdgeSet, pointList));
 		}
 	}
 }
-std::set<HalfEdge*> getRemovableEdgeSet(std::vector<Point> const& pointList,
+
+void getRemovableEdgeQueue(EdgePriorityQueue& priorityQueue,
+										std::vector<Point> const& pointList,
 										std::vector<std::unique_ptr<HalfEdge>> const& graph)
 {
-	std::set<HalfEdge*> removableEdgeSet;
-
 	for (auto&& edge:graph)
 	{
 		if (edge->vertex>edge->next->vertex)
@@ -170,11 +225,9 @@ std::set<HalfEdge*> getRemovableEdgeSet(std::vector<Point> const& pointList,
 
 		if (isEdgeRemoveable(pointList, edge.get()))
 		{
-			removableEdgeSet.insert(edge.get());
+			priorityQueue.insert(edge.get(), getSmallestAdjacentAngleOnEdge(edge.get(), {}, pointList));
 		}
 	}
-
-	return removableEdgeSet;
 }
 
 std::vector<std::vector<std::uint16_t>> extractPolygonList(
@@ -213,18 +266,18 @@ std::vector<std::vector<std::uint16_t>> extractPolygonList(
 	return resultList;
 }
 
-std::set<EdgeID> deleteEdges(std::set<HalfEdge*> &removableEdgeSet, std::vector<Point> const& pointList)
+std::set<EdgeID> deleteEdges(EdgePriorityQueue& priorityQueue, std::vector<Point> const& pointList)
 {
 	std::set<EdgeID> deletedEdgeSet;
 
-	while (!removableEdgeSet.empty())
+	while (!priorityQueue.empty())
 	{
-		auto edgeToRemove=pickEdgeToRemove(removableEdgeSet, deletedEdgeSet, pointList);
-
-		updateEdge(edgeToRemove, removableEdgeSet, deletedEdgeSet, pointList);
-		updateEdge(edgeToRemove->partner, removableEdgeSet, deletedEdgeSet, pointList);
+		auto edgeToRemove=priorityQueue.extract();
 
 		deletedEdgeSet.insert(getEdgeID(edgeToRemove->vertex, edgeToRemove->next->vertex));
+
+		updateEdge(edgeToRemove, priorityQueue, deletedEdgeSet, pointList);
+		updateEdge(edgeToRemove->partner, priorityQueue, deletedEdgeSet, pointList);
 	}
 	
 	return deletedEdgeSet;
@@ -288,10 +341,11 @@ std::vector<std::vector<std::uint16_t>> decomp::hertelMehlhorn(
 	
 	// Find out which edges are removable in general, i.e. which can be removed
 	// without creating non-convex corners in a first step.
-	auto removableEdgeSet=getRemovableEdgeSet(pointList, graph);
+	EdgePriorityQueue priorityQueue;
+	getRemovableEdgeQueue(priorityQueue, pointList, graph);
 
 	// Figure out which edges to actually remove
-	auto deletedEdgeSet=deleteEdges(removableEdgeSet, pointList);
+	auto deletedEdgeSet=deleteEdges(priorityQueue, pointList);
 
 	// Extract a list of polygons an return it
 	return extractPolygonList(graph, deletedEdgeSet);
