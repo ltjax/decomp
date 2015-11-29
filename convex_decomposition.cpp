@@ -47,7 +47,7 @@ public:
 
 	void update(HalfEdge* edge, double priority)
 	{
-		auto& where(mReverse.find(edge));
+        auto where(mReverse.find(edge));
 		assert(where!=mReverse.end());
 		mQueue.erase(where->second);
 		where->second=mQueue.insert({priority, edge});
@@ -55,7 +55,7 @@ public:
 
 	void erase(HalfEdge* edge)
 	{
-		auto& where(mReverse.find(edge));
+        auto where(mReverse.find(edge));
 		assert(where!=mReverse.end());
 		mQueue.erase(where->second);
 		mReverse.erase(where);
