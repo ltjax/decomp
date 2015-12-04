@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cmath>
 #include <set>
+#include <stdexcept>
 
 using namespace decomp;
 
