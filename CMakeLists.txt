@@ -1,6 +1,8 @@
 cmake_minimum_required (VERSION 3.1.0)
 project (decomp)
 
+set(TARGET_NAME ${PROJECT_NAME})
+
 # Enable C++11 for Clang
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
@@ -8,12 +10,15 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 endif()
 
 # Build the main library
-add_library(decomp 
+add_library(${TARGET_NAME}
   convex_decomposition.cpp
   convex_decomposition.hpp
   triangulation.hpp 
   triangulation.cpp
 )
+
+target_include_directories(${TARGET_NAME}
+  INTERFACE ./)
 
 # Only enable tests for top-level projects
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
