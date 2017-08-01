@@ -113,13 +113,13 @@ struct VertexNode
     bool isConvex;
     bool isReflex;
     bool isEar = false;
-    double biggestAngle;
+    double minimumInteriorAngle;
     EarPriorityQueue::iterator queueNode;
 };
 
 bool EarLess::operator()(VertexNode* lhs, VertexNode* rhs)
 {
-    return lhs->biggestAngle > rhs->biggestAngle;
+    return lhs->minimumInteriorAngle > rhs->minimumInteriorAngle;
 }
 
 void updateNodeType(VertexNode* node, PointList const& pointList)
@@ -161,11 +161,15 @@ void updateEarState(VertexNode* node, PointList const& pointList, EarPriorityQue
         }
     }
 
-    auto x = b - a;
-    auto y = c - b;
-    auto z = a - c;
+    auto x = normalize(b - a);
+    auto y = normalize(c - b);
+    auto z = normalize(a - c);
 
-    node->biggestAngle = std::min(std::min(-dot(z, x), -dot(x, y)), -dot(y, z));
+    auto alpha = -dot(z, x);
+    auto beta = -dot(x, y);
+    auto gamma = -dot(y, z);
+
+    node->minimumInteriorAngle = std::min({ alpha, beta, gamma });
     node->isEar = true;
     node->queueNode = queue.insert(node);
 }
