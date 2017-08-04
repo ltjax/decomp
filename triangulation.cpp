@@ -119,7 +119,7 @@ struct VertexNode
 
 bool EarLess::operator()(VertexNode* lhs, VertexNode* rhs)
 {
-    return lhs->minimumInteriorAngle > rhs->minimumInteriorAngle;
+    return lhs->minimumInteriorAngle < rhs->minimumInteriorAngle;
 }
 
 void updateNodeType(VertexNode* node, PointList const& pointList)
@@ -169,7 +169,7 @@ void updateEarState(VertexNode* node, PointList const& pointList, EarPriorityQue
     auto beta = -dot(x, y);
     auto gamma = -dot(y, z);
 
-    node->minimumInteriorAngle = std::min({ alpha, beta, gamma });
+    node->minimumInteriorAngle = std::max({ alpha, beta, gamma });
     node->isEar = true;
     node->queueNode = queue.insert(node);
 }
@@ -248,9 +248,8 @@ int findVisiblePoint(PointList const& pointList,
         }
 
         // Try from smallest angle with the idealDirection
-        if (bestPoint >= 0 &&
-            dot(normalize(rimPoint - from), idealDirection) <
-                dot(normalize(getPoint(bestPoint) - from), idealDirection))
+        if (bestPoint >= 0 && dot(normalize(rimPoint - from), idealDirection) <
+                                  dot(normalize(getPoint(bestPoint) - from), idealDirection))
         {
             continue;
         }
