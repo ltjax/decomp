@@ -33,7 +33,7 @@ bool isCounterClockwise(Point const& a, Point const& b, Point const& c)
 
 bool isClockwise(Point const& a, Point const& b, Point const& c)
 {
-    return determinant(b - a, c - a) < 0.0;
+    return determinant(b - a, c - a) <= 0.0;
 }
 
 bool inCone(Point const& a, Point const& b, Point const& c, Point const& p)
@@ -46,7 +46,7 @@ bool inCone(Point const& a, Point const& b, Point const& c, Point const& p)
 
 bool triangleContains(Point const& a, Point const& b, Point const& c, Point const& tested)
 {
-    return !isClockwise(a, b, tested) && !isClockwise(b, c, tested) && !isClockwise(c, a, tested);
+    return isClockwise(a, tested, b) && isClockwise(b, tested, c) && isClockwise(c, tested, a);
 }
 
 bool segmentsIntersect(Point const& a, Point const& b, Point const& c, Point const& d)
@@ -240,10 +240,13 @@ int findVisiblePoint(PointList const& pointList,
         }
 
         // Try from smallest angle with the idealDirection
-        if (bestPoint >= 0 && dot(normalize(rimPoint - from), idealDirection) <
-                                  dot(normalize(getPoint(bestPoint) - from), idealDirection))
+        if (bestPoint >= 0)
         {
-            continue;
+            if (dot(normalize(rimPoint - from), idealDirection) <
+                dot(normalize(getPoint(bestPoint) - from), idealDirection))
+            {
+                continue;
+            }
         }
 
         // Make sure the point is not occluded by other edges
