@@ -85,7 +85,7 @@ bool isInternallyConvex(Point const& a, Point const& b, Point const& c)
     return right[0] * left[1] >= right[1] * left[0];
 }
 
-bool isEdgeRemoveable(std::vector<Point> const& pointList, decomp::HalfEdge* edge)
+bool isEdgeRemoveable(PointList const& pointList, decomp::HalfEdge* edge)
 {
     if (!edge->partner)
         return false;
@@ -108,6 +108,39 @@ inline HalfEdge* representative(HalfEdge* e)
         return e->partner;
     else
         return e;
+}
+
+void flip(HalfEdge* e)
+{
+    auto f = e->partner;
+
+    auto a = e->next;
+    auto b = a->next;
+    auto c = f->next;
+    auto d = c->next;
+
+    e->next = b;
+    b->next = c;
+    c->next = e;
+    e->vertex = d->vertex;
+
+    f->next = d;
+    d->next = a;
+    a->next = f;
+    f->vertex = b->vertex;
+}
+
+bool flipImprovesAngle(PointList const& pointList, HalfEdge* edge)
+{
+    auto a = pointList[edge->next->vertex];
+    auto b = pointList[edge->next->next->vertex];
+    auto c = pointList[edge->vertex];
+    auto d = pointList[edge->partner->next->next->vertex];
+
+    auto oldAngle = std::max(minimumInteriorAngle(a, b, c), minimumInteriorAngle(a, c, d));
+    auto newAngle = std::max(minimumInteriorAngle(a, b, d), minimumInteriorAngle(b, c, d));
+
+    return oldAngle > newAngle;
 }
 
 HalfEdge* getUndeletedLeft(std::set<EdgeID> const& deletedEdgeSet, HalfEdge* edge)
@@ -279,6 +312,38 @@ std::set<EdgeID> deleteEdges(EdgePriorityQueue& priorityQueue, std::vector<Point
 }
 }
 
+void decomp::edgeFlip(PointList const& pointList, std::vector<std::unique_ptr<HalfEdge>> const& edges)
+{
+    std::vector<HalfEdge*> eligible;
+    for (auto const& edge : edges)
+    {
+        if (!edge->partner)
+            continue;
+
+        if (edge.get() != representative(edge.get()))
+            continue;
+        eligible.push_back(edge.get());
+    }
+
+    for (int i = 0; i < edges.size(); ++i)
+    {
+        bool flipped = false;
+        for (auto edge : eligible)
+        {
+            if (!isEdgeRemoveable(pointList, edge))
+                continue;
+
+            if (!flipImprovesAngle(pointList, edge))
+                continue;
+
+            flip(edge);
+            flipped = true;
+        }
+        if (!flipped)
+            break;
+    }
+}
+
 std::vector<std::unique_ptr<HalfEdge>> decomp::buildHalfEdgeGraph(IndexList const& triangleList)
 {
     if (triangleList.size() % 3 != 0)
@@ -331,6 +396,9 @@ std::vector<IndexList> decomp::hertelMehlhorn(PointList const& pointList, IndexL
 {
     // Extract connectivity information
     auto graph = buildHalfEdgeGraph(triangleList);
+
+    // Refine the triangulation by flipping edges to increase the minimum interior angle
+    edgeFlip(pointList, graph);
 
     // Find out which edges are removable in general, i.e. which can be removed
     // without creating non-convex corners in a first step.

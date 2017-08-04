@@ -18,6 +18,10 @@ std::vector<std::unique_ptr<HalfEdge>> buildHalfEdgeGraph(IndexList const& trian
 
 std::vector<IndexList> hertelMehlhorn(PointList const& pointList, IndexList const& triangleList);
 
+void edgeFlip(PointList const& pointList, std::vector<std::unique_ptr<HalfEdge>> const& edges);
+
+/** Decompose a given simple polygon with simple holes into a list of convex polygons.
+ */
 std::vector<IndexList>
 decompose(PointList const& pointList, IndexList simplePolygon, std::vector<IndexList> holeList = {});
 }
