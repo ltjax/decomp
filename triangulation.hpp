@@ -106,12 +106,16 @@ enum class Winding
 IndexList removeHoles(PointList const& pointList, IndexList indexList, std::vector<IndexList> holeList);
 
 /** Triangulate a simple polygon using ear-clipping.
-*/
+ */
 IndexList earClipping(PointList const& pointList, IndexList const& polygon);
 
 /** Figure out the winding of a simple polygon.
-*/
+ */
 Winding computeWinding(PointList const& pointList, IndexList const& polygon);
+
+/** Compute the cosine of the minimum interior angle in a triangle.
+ */
+double minimumInteriorAngle(Point const& a, Point const& b, Point const& c);
 }
 
 #endif

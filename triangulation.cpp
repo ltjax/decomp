@@ -161,15 +161,7 @@ void updateEarState(VertexNode* node, PointList const& pointList, EarPriorityQue
         }
     }
 
-    auto x = normalize(b - a);
-    auto y = normalize(c - b);
-    auto z = normalize(a - c);
-
-    auto alpha = -dot(z, x);
-    auto beta = -dot(x, y);
-    auto gamma = -dot(y, z);
-
-    node->minimumInteriorAngle = std::max({ alpha, beta, gamma });
+    node->minimumInteriorAngle = minimumInteriorAngle(a, b, c);
     node->isEar = true;
     node->queueNode = queue.insert(node);
 }
@@ -293,6 +285,19 @@ void removeHole(PointList const& pointList, IndexList& indexList, std::vector<In
     indexList.insert(indexList.end(), hole.begin() + rightmostPoint, hole.end());
     indexList.insert(indexList.end(), hole.begin(), hole.begin() + rightmostPoint + 1);
 }
+}
+
+double decomp::minimumInteriorAngle(Point const& a, Point const& b, Point const& c)
+{
+    auto x = normalize(b - a);
+    auto y = normalize(c - b);
+    auto z = normalize(a - c);
+
+    auto alpha = -dot(z, x);
+    auto beta = -dot(x, y);
+    auto gamma = -dot(y, z);
+
+    return std::max({ alpha, beta, gamma });
 }
 
 IndexList decomp::removeHoles(PointList const& pointList, IndexList indexList, std::vector<IndexList> holeList)
