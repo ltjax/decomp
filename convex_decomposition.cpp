@@ -325,7 +325,7 @@ void decomp::edgeFlip(PointList const& pointList, std::vector<std::unique_ptr<Ha
         eligible.push_back(edge.get());
     }
 
-    for (int i = 0; i < edges.size(); ++i)
+    for (std::size_t i = 0; i < edges.size(); ++i)
     {
         bool flipped = false;
         for (auto edge : eligible)
