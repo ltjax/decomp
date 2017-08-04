@@ -279,7 +279,7 @@ std::set<EdgeID> deleteEdges(EdgePriorityQueue& priorityQueue, std::vector<Point
 }
 }
 
-std::vector<std::unique_ptr<HalfEdge>> decomp::buildHalfEdgeGraph(std::vector<std::uint16_t> const& triangleList)
+std::vector<std::unique_ptr<HalfEdge>> decomp::buildHalfEdgeGraph(IndexList const& triangleList)
 {
     if (triangleList.size() % 3 != 0)
     {
@@ -327,8 +327,7 @@ std::vector<std::unique_ptr<HalfEdge>> decomp::buildHalfEdgeGraph(std::vector<st
     return halfEdgeList;
 }
 
-std::vector<std::vector<std::uint16_t>> decomp::hertelMehlhorn(std::vector<Point> const& pointList,
-                                                               std::vector<std::uint16_t> const& triangleList)
+std::vector<IndexList> decomp::hertelMehlhorn(PointList const& pointList, IndexList const& triangleList)
 {
     // Extract connectivity information
     auto graph = buildHalfEdgeGraph(triangleList);
