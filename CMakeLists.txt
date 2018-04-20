@@ -3,6 +3,8 @@ project (decomp)
 
 set(TARGET_NAME ${PROJECT_NAME})
 
+option(${PROJECT_NAME}_BUILD_TESTS "Build tests" OFF)
+
 # Enable C++11 for Clang
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
@@ -31,7 +33,7 @@ install(FILES
   include/decomp/)
 
 # Only enable tests for top-level projects
-if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+if(${PROJECT_NAME}_BUILD_TESTS)
   include(CTest)
 
   set(TESTS
