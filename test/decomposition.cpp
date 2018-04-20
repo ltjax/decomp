@@ -1,5 +1,5 @@
 
-#include "../convex_decomposition.hpp"
+#include <decomp/convex_decomposition.hpp>
 
 using namespace decomp;
 
@@ -186,8 +186,8 @@ bool mediumTest()
     };
 
     IndexList polygon;
-    for (int i = 0; i < static_cast<int>(pointList.size()); ++i)
-        polygon.push_back(pointList.size() - 1 - i);
+    for (std::size_t i = 0; i < pointList.size(); ++i)
+        polygon.push_back(static_cast<std::uint16_t>(pointList.size() - 1 - i));
 
     auto triangleList = earClipping(pointList, polygon);
 

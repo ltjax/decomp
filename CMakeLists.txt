@@ -9,16 +9,26 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
 endif()
 
+set(HEADERS
+  source/decomp/convex_decomposition.hpp  
+  source/decomp/triangulation.hpp)
+
 # Build the main library
 add_library(${TARGET_NAME}
-  convex_decomposition.cpp
-  convex_decomposition.hpp
-  triangulation.hpp 
-  triangulation.cpp
-)
+  ${HEADERS}
+  source/decomp/convex_decomposition.cpp
+  source/decomp/triangulation.cpp)
 
 target_include_directories(${TARGET_NAME}
-  INTERFACE ./)
+  INTERFACE source)
+  
+install(TARGETS ${TARGET_NAME}
+  ARCHIVE DESTINATION lib)
+
+install(FILES 
+  ${HEADERS}
+  DESTINATION
+  include/decomp/)
 
 # Only enable tests for top-level projects
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)

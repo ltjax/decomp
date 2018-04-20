@@ -1,5 +1,5 @@
 
-#include "../triangulation.hpp"
+#include <decomp/triangulation.hpp>
 
 using namespace decomp;
 

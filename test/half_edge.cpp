@@ -1,5 +1,4 @@
-
-#include "../convex_decomposition.hpp"
+#include <decomp/convex_decomposition.hpp>
 
 using namespace decomp;
 
