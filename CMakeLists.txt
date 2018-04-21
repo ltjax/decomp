@@ -1,15 +1,11 @@
-cmake_minimum_required (VERSION 3.1.0)
+cmake_minimum_required (VERSION 3.2.0)
 project (decomp)
 
+set(CMAKE_CXX_STANDARD 11)
 set(TARGET_NAME ${PROJECT_NAME})
 
 option(${PROJECT_NAME}_BUILD_TESTS "Build tests" OFF)
 
-# Enable C++11 for Clang
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
-endif()
 
 set(HEADERS
   source/decomp/convex_decomposition.hpp  
