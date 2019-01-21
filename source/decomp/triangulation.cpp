@@ -129,6 +129,37 @@ void updateNodeType(VertexNode* node, PointList const& pointList)
     node->isReflex = isClockwise(pointList[node->prev->index], pointList[node->index], pointList[node->next->index]);
 }
 
+bool containsOtherVertex(VertexNode* node, PointList const& pointList)
+{
+    auto i = node->prev->index;
+    auto j = node->index;
+    auto k = node->next->index;
+
+    auto const& a(pointList[i]);
+    auto const& b(pointList[j]);
+    auto const& c(pointList[k]);
+
+    for (auto current = node->next->next; current != node->prev; current = current->next)
+    {
+        // Only need to consider reflex vertices
+        if (!current->isReflex)
+            continue;
+
+        auto currentIndex = current->index;
+
+        // Own vertices can touch, but are not inside
+        if (currentIndex == i || currentIndex == j || currentIndex == k)
+            continue;
+
+        if (triangleContains(a, b, c, pointList[currentIndex]))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void updateEarState(VertexNode* node, PointList const& pointList, EarPriorityQueue& queue)
 {
     // Start by erasing this node's entry in the priority queue
@@ -145,22 +176,15 @@ void updateEarState(VertexNode* node, PointList const& pointList, EarPriorityQue
         return;
     }
 
+    if (containsOtherVertex(node, pointList))
+    {
+        node->isEar = false;
+        return;
+    }
+
     auto const& a(pointList[node->prev->index]);
     auto const& b(pointList[node->index]);
     auto const& c(pointList[node->next->index]);
-
-    for (auto current = node->next->next; current != node->prev; current = current->next)
-    {
-        if (!current->isReflex)
-            continue;
-
-        if (triangleContains(a, b, c, pointList[current->index]))
-        {
-            node->isEar = false;
-            return;
-        }
-    }
-
     node->minimumInteriorAngle = minimumInteriorAngle(a, b, c);
     node->isEar = true;
     node->queueNode = queue.insert(node);
