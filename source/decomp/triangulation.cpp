@@ -11,7 +11,7 @@ using namespace decomp;
 namespace
 {
 
-std::uint16_t findRightmostPoint(PointList const& pointList, IndexList const& polygon)
+int findRightmostPoint(PointList const& pointList, IndexList const& polygon)
 {
     assert(!polygon.empty());
 
