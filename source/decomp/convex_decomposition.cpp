@@ -4,6 +4,7 @@
 #include <map>
 #include <set>
 #include <unordered_map>
+#include <stdexcept>
 
 using namespace decomp;
 
@@ -356,7 +357,7 @@ std::vector<std::unique_ptr<HalfEdge>> decomp::buildHalfEdgeGraph(IndexList cons
     OpenEdgeMap openEdgeList;
     halfEdgeList.resize(triangleList.size());
 
-    int const N = triangleList.size();
+    int const N = static_cast<int>(triangleList.size());
 
     for (int i = 0; i < N; ++i)
         halfEdgeList[i].reset(new HalfEdge);
