@@ -283,7 +283,11 @@ int findVisiblePoint(PointList const& pointList,
         bestPoint = i;
     }
 
-    assert(bestPoint != -1);
+    if (bestPoint == -1)
+    {
+        throw std::runtime_error("Unable to find visible point on outer polygon");
+    }
+
     return bestPoint;
 }
 
