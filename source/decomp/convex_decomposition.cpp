@@ -1,3 +1,5 @@
+#include <utility>
+
 #include "convex_decomposition.hpp"
 #include <algorithm>
 #include <cassert>
@@ -416,7 +418,7 @@ std::vector<IndexList> decomp::hertelMehlhorn(PointList const& pointList, IndexL
 std::vector<IndexList>
 decomp::decompose(PointList const& pointList, IndexList simplePolygon, std::vector<IndexList> holeList)
 {
-    auto simpleWithoutHoles = removeHoles(pointList, simplePolygon, holeList);
+    auto simpleWithoutHoles = removeHoles(pointList, std::move(simplePolygon), std::move(holeList));
 
     auto triangleList = earClipping(pointList, simpleWithoutHoles);
 
