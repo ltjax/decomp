@@ -1,9 +1,10 @@
-#ifndef LIB_DECOMP_HEADER
-#define LIB_DECOMP_HEADER
+#ifndef LIB_DECOMP_TRIANGULATION
+#define LIB_DECOMP_TRIANGULATION
 
 #include <cmath>
 #include <cstdint>
 #include <vector>
+#include <iosfwd>
 
 namespace decomp
 {
@@ -90,6 +91,13 @@ inline double dot(Point const& lhs, Point const& rhs)
     return lhs[0] * rhs[0] + lhs[1] * rhs[1];
 }
 
+inline bool operator==(Point const& lhs, Point const& rhs)
+{
+    return lhs[0] == rhs[0] && lhs[1] == rhs[1];
+}
+
+std::ostream& operator<<(std::ostream& out, Point const& p);
+
 using PointList = std::vector<Point>;
 using IndexList = std::vector<std::uint16_t>;
 
@@ -116,6 +124,8 @@ Winding computeWinding(PointList const& pointList, IndexList const& polygon);
 /** Compute the cosine of the minimum interior angle in a triangle.
  */
 double minimumInteriorAngle(Point const& a, Point const& b, Point const& c);
+
+
 }
 
 #endif

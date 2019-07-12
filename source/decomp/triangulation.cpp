@@ -5,6 +5,7 @@
 #include <cmath>
 #include <set>
 #include <stdexcept>
+#include <ostream>
 
 using namespace decomp;
 
@@ -283,8 +284,24 @@ int findVisiblePoint(PointList const& pointList,
         bestPoint = i;
     }
 
-    assert(bestPoint != -1);
+    if (bestPoint == -1)
+    {
+        throw std::runtime_error("Unable to find visible point on outer polygon");
+    }
+
     return bestPoint;
+}
+
+Point bestDirectionFor(int point, PointList const& pointList, IndexList const& hole)
+{
+    auto N = hole.size();
+    auto& previous = pointList[hole[(point + 1) % N]];
+    auto& current = pointList[hole[point]];
+    auto& next = pointList[hole[(point + N - 1) % N]];
+    auto previousDirection = normalize(current - previous);
+    auto nextDirection = normalize(next - current);
+    auto tangent = normalize(previousDirection + nextDirection);
+    return Point(tangent[1], -tangent[0]);
 }
 
 void removeHole(PointList const& pointList, IndexList& indexList, std::vector<IndexList>& holeList)
@@ -294,10 +311,8 @@ void removeHole(PointList const& pointList, IndexList& indexList, std::vector<In
     IndexList hole;
     extractRightmostHole(pointList, holeList, hole, rightmostPoint);
 
-    Point holePoint = pointList[hole[rightmostPoint]];
-    Point bestDirection =
-        normalize(normalize(holePoint - pointList[hole[(rightmostPoint + 1) % hole.size()]]) +
-                  normalize(holePoint - pointList[hole[(rightmostPoint + hole.size() - 1) % hole.size()]]));
+    auto holePoint = pointList[hole[rightmostPoint]];
+    auto bestDirection = bestDirectionFor(rightmostPoint, pointList, hole);
 
     // Find a point to connect that to
     int bestPoint = findVisiblePoint(pointList, indexList, holePoint, bestDirection);
@@ -329,6 +344,13 @@ double decomp::minimumInteriorAngle(Point const& a, Point const& b, Point const&
 
 IndexList decomp::removeHoles(PointList const& pointList, IndexList indexList, std::vector<IndexList> holeList)
 {
+    // Remove empty/degenerate holes
+    holeList.erase(std::remove_if(holeList.begin(), holeList.end(), [](IndexList const& hole)
+    {
+        return hole.empty();
+    }), holeList.end());
+
+    // Remove actual holes
     while (!holeList.empty())
     {
         removeHole(pointList, indexList, holeList);
@@ -409,4 +431,8 @@ decomp::Winding decomp::computeWinding(PointList const& pointList, IndexList con
         return Winding::Clockwise;
     else // (signedArea>0.0)
         return Winding::CounterClockwise;
+}
+
+std::ostream& decomp::operator<<(std::ostream &out, Point const &p) {
+    return out << '{' << p[0] << ',' << p[1] << '}';
 }
