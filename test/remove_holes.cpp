@@ -162,8 +162,8 @@ TEST_CASE("Issue #1")
 
     // Try not to crash
     auto good = removeHoles(pointList, outer, {holeThatGeneratedWeirdConnection});
-    //std::ofstream svg("error.svg");
-    //svg::writePolygon(svg, pointList, good, {holeThatTriggersTheCrash});
+    std::ofstream svg("error.svg");
+    svg::writePolygon(svg, pointList, good, {holeThatTriggersTheCrash});
     auto bad = removeHoles(pointList, good, {holeThatTriggersTheCrash});
 
     REQUIRE(true);

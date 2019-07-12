@@ -5,6 +5,7 @@
 #include <cmath>
 #include <set>
 #include <stdexcept>
+#include <ostream>
 
 using namespace decomp;
 
@@ -420,4 +421,8 @@ decomp::Winding decomp::computeWinding(PointList const& pointList, IndexList con
         return Winding::Clockwise;
     else // (signedArea>0.0)
         return Winding::CounterClockwise;
+}
+
+std::ostream& decomp::operator<<(std::ostream &out, Point const &p) {
+    return out << '{' << p[0] << ',' << p[1] << '}';
 }
