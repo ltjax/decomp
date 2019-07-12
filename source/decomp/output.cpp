@@ -10,15 +10,15 @@ void writeSvgHeader(std::ostream& out, Point const& min, Point const& max)
     out << R"(<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
   xmlns="http://www.w3.org/2000/svg"
-  height="1400" width="1400"
-  version="1.1">"
+  version="1.1"
 )";
+    out << "  height=\"" << (max[0]-min[0]) << "\" width=\"" << (max[1] - min[1]) << "\">\n";
     out << "  <g transform=\"translate(" << -min[0] << " " << -min[1] << ")\">\n";
 }
 
 void writeSvgFooter(std::ostream& out)
 {
-    out << R"("
+    out << R"(
   </g>
 </svg>
 )";
