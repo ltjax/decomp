@@ -37,6 +37,22 @@ void writeSvgPolygon(std::ostream& svg, PointList const& points, IndexList const
     }
 
     svg << "\"\nstyle=\"fill:none;stroke:" << color << ";stroke-width:3\" />\n";
+
+}
+
+void writeSvgPointIndices(std::ostream& svg, PointList const& points)
+{
+    svg << R"(
+    <style>
+      .small { font: italic 9px sans-serif; fill: #22a }
+    </style>
+)";
+
+    for (std::size_t i = 0; i < points.size(); ++i)
+    {
+        auto point = points[i];
+        svg << "    <text x=\""<<point[0]<<"\" y=\""<<point[1]<<R"(" class="small">)"<<i<<"</text>\n";
+    }
 }
 } // namespace
 
@@ -61,6 +77,8 @@ void svg::writePolygon(std::ostream& svg, PointList const& points, IndexList con
     {
         writeSvgPolygon(svg, points, hole, "#a00");
     }
+
+    writeSvgPointIndices(svg, points);
 
     writeSvgFooter(svg);
 }
