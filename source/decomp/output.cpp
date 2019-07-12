@@ -12,7 +12,8 @@ void writeSvgHeader(std::ostream& out, Point const& min, Point const& max)
   xmlns="http://www.w3.org/2000/svg"
   version="1.1"
 )";
-    out << "  height=\"" << (max[0]-min[0]) << "\" width=\"" << (max[1] - min[1]) << "\">\n";
+    out << "  width=\"" << std::ceil(max[0]-min[0]) << "\" height=\"" << std::ceil(max[1]-min[1]) << "\">\n";
+    out << "  <rect width=\"100%\" height=\"100%\" fill=\"#fff\"/>\n";
     out << "  <g transform=\"translate(" << -min[0] << " " << -min[1] << ")\">\n";
 }
 
@@ -24,9 +25,23 @@ void writeSvgFooter(std::ostream& out)
 )";
     out << std::endl;
 }
+
+void writeSvgPolygon(std::ostream& svg, PointList const& points, IndexList const& indices, char const* color)
+{
+    svg << "    <polygon points=\"";
+
+    for (auto const& each : indices)
+    {
+        auto point = points[each];
+        svg << point[0] << "," << point[1] << " ";
+    }
+
+    svg << "\"\nstyle=\"fill:none;stroke:" << color << ";stroke-width:3\" />\n";
+}
 } // namespace
 
-void svg::writePolygon(std::ostream& svg, PointList const& points, IndexList const& indices)
+void svg::writePolygon(std::ostream& svg, PointList const& points, IndexList const& indices,
+                       std::vector<IndexList> const& holes)
 {
     Point min{ std::numeric_limits<float>::max() };
     Point max{ -std::numeric_limits<float>::max() };
@@ -40,17 +55,12 @@ void svg::writePolygon(std::ostream& svg, PointList const& points, IndexList con
         }
     }
     writeSvgHeader(svg, min, max);
-    svg << "    <polygon points=\"";
 
-    for (auto const& each : indices)
+    writeSvgPolygon(svg, points, indices, "#000");
+    for (auto const& hole : holes)
     {
-        auto point = points[each];
-        svg << point[0] << "," << point[1] << " ";
+        writeSvgPolygon(svg, points, hole, "#a00");
     }
-
-    svg << R"("
-  style="fill:none;stroke:black;stroke-width:3" />
-)";
 
     writeSvgFooter(svg);
 }
