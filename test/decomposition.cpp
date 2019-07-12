@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <decomp/convex_decomposition.hpp>
+#include <catch2/catch.hpp>
 
 using namespace decomp;
 
@@ -47,7 +48,7 @@ bool allConvex(PointList const& pointList, std::vector<IndexList> const& polygon
 }
 }
 
-bool testHertelMehlhorn()
+TEST_CASE("hertel-mehlhorn")
 {
     std::vector<Point> pointList = { { -1, 0 }, { 0, 0 }, { 0, -1 }, { 1, -1 }, { 1, 1 }, { -1, 1 } };
 
@@ -55,13 +56,10 @@ bool testHertelMehlhorn()
 
     auto decomposed = hertelMehlhorn(pointList, triangleList);
 
-    if (!allConvex(pointList, decomposed))
-        return false;
-
-    return true;
+    REQUIRE(allConvex(pointList, decomposed));
 }
 
-bool largeTest()
+TEST_CASE("large-decomposition")
 {
     std::vector<Point> pointList = {
         { -779.42297363281250, 30.000000000000000 },     { -727.46142578125000, 60.000000000000000 },
@@ -136,32 +134,24 @@ bool largeTest()
     for (int i = 0; i < 98; ++i)
         outerPolygon.push_back(i);
 
-    if (computeWinding(pointList, outerPolygon) != Winding::Clockwise)
-        return false;
+    REQUIRE(computeWinding(pointList, outerPolygon) == Winding::Clockwise);
 
     std::reverse(outerPolygon.begin(), outerPolygon.end());
 
-    if (computeWinding(pointList, outerPolygon) == Winding::Clockwise)
-        return false;
+    REQUIRE(computeWinding(pointList, outerPolygon) != Winding::Clockwise);
 
     IndexList hole;
     for (int i = 98; i < static_cast<int>(pointList.size()); ++i)
         hole.push_back(i);
 
-    // std::reverse(hole.begin(), hole.end());
-
-    if (computeWinding(pointList, hole) != Winding::Clockwise)
-        return false;
+    REQUIRE(computeWinding(pointList, hole) == Winding::Clockwise);
 
     auto decomposed = decompose(pointList, outerPolygon, { hole });
 
-    if (!allConvex(pointList, decomposed))
-        return false;
-
-    return true;
+    REQUIRE(allConvex(pointList, decomposed));
 }
 
-bool mediumTest()
+TEST_CASE("medium decomposition")
 {
     std::vector<Point> const pointList = {
         { 103.92297363281250, 300.00000000000000 },  { 155.88452148437500, 330.00000000000000 },
@@ -193,26 +183,20 @@ bool mediumTest()
 
     auto decomposed = hertelMehlhorn(pointList, triangleList);
 
-    if (!allConvex(pointList, decomposed))
-        return false;
-
-    return true;
+    REQUIRE(allConvex(pointList, decomposed));
 }
 
-bool simpleTest()
+TEST_CASE("simple decomposition")
 {
     PointList const pointList = { { 1, 2 }, { 2, 0 }, { 1, 1 }, { 0, 0 } };
 
     IndexList triangleList = { 2, 1, 0, 3, 2, 0 };
     auto convexList = hertelMehlhorn(pointList, triangleList);
 
-    if (!allConvex(pointList, convexList))
-        return false;
-
-    return true;
+    REQUIRE(allConvex(pointList, convexList));
 }
 
-bool testCompleteDecomposition()
+TEST_CASE("complete decomposition")
 {
     std::vector<Point> pointList = {
         { -4, 0 }, { -3, -2 }, { 3, -2 }, { 4, 0 },  { 3, 2 }, { -3, 2 }, // points on the outer polygon
@@ -225,28 +209,5 @@ bool testCompleteDecomposition()
     std::vector<std::vector<std::uint16_t>> holeList = { { 13, 12, 11, 10 }, { 9, 8, 7, 6 } };
 
     auto decomposed = decompose(pointList, outerPolygon, holeList);
-    if (!allConvex(pointList, decomposed))
-        return false;
-
-    return true;
-}
-
-int main()
-{
-    if (!simpleTest())
-        return EXIT_FAILURE;
-
-    if (!mediumTest())
-        return EXIT_FAILURE;
-
-    if (!largeTest())
-        return EXIT_FAILURE;
-
-    if (!testHertelMehlhorn())
-        return EXIT_FAILURE;
-
-    if (!testCompleteDecomposition())
-        return EXIT_FAILURE;
-
-    return EXIT_SUCCESS;
+    REQUIRE(allConvex(pointList, decomposed));
 }

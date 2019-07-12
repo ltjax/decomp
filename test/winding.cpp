@@ -1,19 +1,23 @@
 #include <decomp/triangulation.hpp>
+#include <catch2/catch.hpp>
 
 using namespace decomp;
 
-int main()
+TEST_CASE("can compute winding")
 {
     std::vector<Point> pointList = { { -2, -2 }, { 2, -2 }, { 2, 2 }, { -2, 2 } };
 
-    std::vector<std::uint16_t> ccwPolygon = { 0, 1, 2, 3 };
+
     std::vector<std::uint16_t> cwPolygon = { 3, 2, 1, 0 };
 
-    if (computeWinding(pointList, ccwPolygon) != Winding::CounterClockwise)
-        return EXIT_FAILURE;
+    SECTION("of counter-clockwise polygon")
+    {
+      std::vector<std::uint16_t> ccwPolygon = { 0, 1, 2, 3 };
+      REQUIRE(computeWinding(pointList, ccwPolygon) == Winding::CounterClockwise);
+    }
 
-    if (computeWinding(pointList, cwPolygon) != Winding::Clockwise)
-        return EXIT_FAILURE;
-
-    return EXIT_SUCCESS;
+    SECTION("of clockwise polygon")
+    {
+      REQUIRE(computeWinding(pointList, cwPolygon) == Winding::Clockwise);
+    }
 }

@@ -1,9 +1,10 @@
 
 #include <decomp/triangulation.hpp>
+#include <catch2/catch.hpp>
 
 using namespace decomp;
 
-int main()
+TEST_CASE("remove holes from polygon")
 {
     std::vector<Point> pointList = { { -2, -2 }, { 2, -2 }, { 2, 2 }, { -2, 2 },
                                      { -1, -1 }, { 1, -1 }, { 1, 1 }, { -1, 1 } };
@@ -13,12 +14,9 @@ int main()
 
     auto mergedPolygon = removeHoles(pointList, outerPolygon, { innerPolygon });
 
-    if (mergedPolygon.size() != 10)
-        return -1;
+    // 2 x 4 vertices + 2 for the connection-edge
+    REQUIRE(mergedPolygon.size() == 10);
 
     std::vector<std::uint16_t> correctPolygon = { 2, 3, 0, 1, 2, 6, 5, 4, 7, 6 };
-    if (!std::equal(correctPolygon.begin(), correctPolygon.end(), mergedPolygon.begin()))
-        return EXIT_FAILURE;
-
-    return EXIT_SUCCESS;
+    REQUIRE(mergedPolygon == correctPolygon);
 }

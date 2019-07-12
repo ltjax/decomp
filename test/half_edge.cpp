@@ -1,12 +1,9 @@
 #include <decomp/convex_decomposition.hpp>
+#include <catch2/catch.hpp>
 
 using namespace decomp;
 
-#define TEST_ASSERT(C)                                                                                                 \
-    if (!(C))                                                                                                          \
-    return EXIT_FAILURE
-
-int main()
+TEST_CASE("can build a correct half-edge graph")
 {
     std::vector<Point> pointList = { { -1, -1 }, { 1, -1 }, { 1, 1 }, { -1, 1 } };
 
@@ -14,25 +11,29 @@ int main()
 
     auto graph = buildHalfEdgeGraph(triangleList);
 
+    REQUIRE(graph.size() == 6);
+
     for (auto&& edge : graph)
     {
-        TEST_ASSERT(edge->next != nullptr);
+        REQUIRE(edge->next != nullptr);
 
         if (edge->vertex == 2 && edge->next->vertex == 0)
         {
-            TEST_ASSERT(edge->partner && edge->partner->partner == edge.get() && edge->partner->vertex == 0 &&
-                        edge->partner->next->vertex == 2);
+            REQUIRE(edge->partner);
+            REQUIRE(edge->partner->partner == edge.get());
+            REQUIRE(edge->partner->vertex == 0);
+            REQUIRE(edge->partner->next->vertex == 2);
         }
         else if (edge->vertex == 0 && edge->next->vertex == 2)
         {
-            TEST_ASSERT(edge->partner && edge->partner->partner == edge.get() && edge->partner->vertex == 2 &&
-                        edge->partner->next->vertex == 0);
+            REQUIRE(edge->partner);
+            REQUIRE(edge->partner->partner == edge.get());
+            REQUIRE(edge->partner->vertex == 2);
+            REQUIRE(edge->partner->next->vertex == 0);
         }
         else
         {
-            TEST_ASSERT(edge->partner == nullptr);
+            REQUIRE(edge->partner == nullptr);
         }
     }
-
-    return EXIT_SUCCESS;
 }

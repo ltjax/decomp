@@ -1,8 +1,9 @@
 #include <decomp/triangulation.hpp>
+#include <catch2/catch.hpp>
 
 using namespace decomp;
 
-int main()
+TEST_CASE("can ear-clip a non-simple polygon")
 {
     std::vector<Point> pointList = {
         { 0, 2 }, { -2, 0 }, { 0, -2 }, { 2, 0 }, { 0, 1 }, { -1, 0 }, { 0, -1 }, { 1, 0 }
@@ -12,8 +13,6 @@ int main()
 
     auto triangleList = earClipping(pointList, indexList);
 
-    if (triangleList.size() != 8 * 3)
-        return EXIT_FAILURE;
-
-    return EXIT_SUCCESS;
+    REQUIRE(triangleList.size() == 8*3);
 }
+
