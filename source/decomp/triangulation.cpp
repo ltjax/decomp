@@ -329,6 +329,13 @@ double decomp::minimumInteriorAngle(Point const& a, Point const& b, Point const&
 
 IndexList decomp::removeHoles(PointList const& pointList, IndexList indexList, std::vector<IndexList> holeList)
 {
+    // Remove empty/degenerate holes
+    holeList.erase(std::remove_if(holeList.begin(), holeList.end(), [](IndexList const& hole)
+    {
+        return hole.empty();
+    }), holeList.end());
+
+    // Remove actual holes
     while (!holeList.empty())
     {
         removeHole(pointList, indexList, holeList);

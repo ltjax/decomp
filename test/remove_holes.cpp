@@ -21,6 +21,12 @@ TEST_CASE("remove holes from polygon")
     REQUIRE(mergedPolygon == correctPolygon);
 }
 
+TEST_CASE("Can deal with empty holes")
+{
+    auto nothing = removeHoles({}, {}, {IndexList{}});
+    REQUIRE(nothing.empty());
+}
+
 TEST_CASE("Issue #1")
 {
     std::vector<Point> pointList = {
