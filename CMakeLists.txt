@@ -17,14 +17,16 @@ if (${PROJECT_NAME}_USE_CONAN)
 endif()
 
 set(HEADERS
-  source/decomp/convex_decomposition.hpp  
-  source/decomp/triangulation.hpp)
+  source/decomp/convex_decomposition.hpp
+  source/decomp/triangulation.hpp
+  source/decomp/output.hpp)
 
 # Build the main library
 add_library(${TARGET_NAME}
   ${HEADERS}
   source/decomp/convex_decomposition.cpp
-  source/decomp/triangulation.cpp)
+  source/decomp/triangulation.cpp
+  source/decomp/output.cpp)
 
 target_include_directories(${TARGET_NAME}
   INTERFACE source)

@@ -1,0 +1,106 @@
+#include "output.hpp"
+#include <limits>
+
+using namespace decomp;
+
+void svg::writePolygon(std::ostream& svg, PointList const& points, IndexList const& indices)
+{
+    Point min{ std::numeric_limits<float>::max() };
+    Point max{ -std::numeric_limits<float>::max() };
+
+    for (auto& each : points)
+    {
+        for (int i = 0; i < 2; ++i)
+        {
+            min[i] = std::min(min[i], each[i]);
+            max[i] = std::max(max[i], each[i]);
+        }
+    }
+    svg << R"(<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  height="1400" width="1400"
+  version="1.1">"
+)";
+    svg << "  <g transform=\"translate(" << -min[0] << " " << -min[1] << ")\">\n";
+    svg << "    <polygon points=\"";
+
+    for (auto const& each : indices)
+    {
+        auto point = points[each];
+        svg << point[0] << "," << point[1] << " ";
+    }
+
+    svg << R"("
+  style="fill:none;stroke:black;stroke-width:3" />
+  </g>
+</svg>
+)";
+}
+
+void svg::writeTriangles(std::ostream& svg, PointList const& points, IndexList const& indices)
+{
+    Point min{ std::numeric_limits<float>::max() };
+    Point max{ -std::numeric_limits<float>::max() };
+
+    for (auto& each : points)
+    {
+        for (int i = 0; i < 2; ++i)
+        {
+            min[i] = std::min(min[i], each[i]);
+            max[i] = std::max(max[i], each[i]);
+        }
+    }
+    svg << R"(<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  height="1400" width="1400"
+  version="1.1">"
+)";
+    svg << "  <g transform=\"translate(" << -min[0] << " " << -min[1] << ")\">\n";
+
+    for (std::size_t i = 0; i + 2 < indices.size(); i += 3)
+    {
+        svg << "    <polygon style=\"fill:none;stroke:black;stroke-width:3\" points=\"";
+
+        for (std::size_t j = 0; j < 3; ++j)
+        {
+            auto point = points[indices[i + j]];
+            svg << point[0] << "," << point[1] << " ";
+        }
+
+        svg << "\"/>\n";
+    }
+
+    svg << R"(
+  </g>
+</svg>
+)";
+}
+
+void decomp::writePoints(std::ostream& out, PointList const& points)
+{
+    out << "{";
+    for (auto const& point : points)
+        out << "{" << point.x() << "," << point.y() << "},";
+    out << "}";
+}
+
+void decomp::writeIndices(std::ostream& out, std::vector<IndexList> const& indices)
+{
+    out << "{";
+    for (auto const& list : indices)
+    {
+        writeIndices(out, list);
+        out << ",";
+    }
+    out << "}";
+}
+
+void decomp::writeIndices(std::ostream& out, IndexList const& indices)
+{
+    out << "{";
+    for (auto const& index : indices)
+        out << index << ",";
+    out << "}";
+}
