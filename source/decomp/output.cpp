@@ -3,6 +3,29 @@
 
 using namespace decomp;
 
+namespace
+{
+void writeSvgHeader(std::ostream& out, Point const& min, Point const& max)
+{
+    out << R"(<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  height="1400" width="1400"
+  version="1.1">"
+)";
+    out << "  <g transform=\"translate(" << -min[0] << " " << -min[1] << ")\">\n";
+}
+
+void writeSvgFooter(std::ostream& out)
+{
+    out << R"("
+  </g>
+</svg>
+)";
+    out << std::endl;
+}
+} // namespace
+
 void svg::writePolygon(std::ostream& svg, PointList const& points, IndexList const& indices)
 {
     Point min{ std::numeric_limits<float>::max() };
@@ -16,13 +39,7 @@ void svg::writePolygon(std::ostream& svg, PointList const& points, IndexList con
             max[i] = std::max(max[i], each[i]);
         }
     }
-    svg << R"(<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg
-  xmlns="http://www.w3.org/2000/svg"
-  height="1400" width="1400"
-  version="1.1">"
-)";
-    svg << "  <g transform=\"translate(" << -min[0] << " " << -min[1] << ")\">\n";
+    writeSvgHeader(svg, min, max);
     svg << "    <polygon points=\"";
 
     for (auto const& each : indices)
@@ -33,9 +50,9 @@ void svg::writePolygon(std::ostream& svg, PointList const& points, IndexList con
 
     svg << R"("
   style="fill:none;stroke:black;stroke-width:3" />
-  </g>
-</svg>
 )";
+
+    writeSvgFooter(svg);
 }
 
 void svg::writeTriangles(std::ostream& svg, PointList const& points, IndexList const& indices)
@@ -51,13 +68,7 @@ void svg::writeTriangles(std::ostream& svg, PointList const& points, IndexList c
             max[i] = std::max(max[i], each[i]);
         }
     }
-    svg << R"(<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg
-  xmlns="http://www.w3.org/2000/svg"
-  height="1400" width="1400"
-  version="1.1">"
-)";
-    svg << "  <g transform=\"translate(" << -min[0] << " " << -min[1] << ")\">\n";
+    writeSvgHeader(svg, min, max);
 
     for (std::size_t i = 0; i + 2 < indices.size(); i += 3)
     {
@@ -72,10 +83,7 @@ void svg::writeTriangles(std::ostream& svg, PointList const& points, IndexList c
         svg << "\"/>\n";
     }
 
-    svg << R"(
-  </g>
-</svg>
-)";
+    writeSvgFooter(svg);
 }
 
 void decomp::writePoints(std::ostream& out, PointList const& points)
