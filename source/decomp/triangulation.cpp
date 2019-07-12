@@ -292,6 +292,18 @@ int findVisiblePoint(PointList const& pointList,
     return bestPoint;
 }
 
+Point bestDirectionFor(int point, PointList const& pointList, IndexList const& hole)
+{
+    auto N = hole.size();
+    auto& previous = pointList[hole[(point + 1) % N]];
+    auto& current = pointList[hole[point]];
+    auto& next = pointList[hole[(point + N - 1) % N]];
+    auto previousDirection = normalize(current - previous);
+    auto nextDirection = normalize(next - current);
+    auto tangent = normalize(previousDirection + nextDirection);
+    return Point(tangent[1], -tangent[0]);
+}
+
 void removeHole(PointList const& pointList, IndexList& indexList, std::vector<IndexList>& holeList)
 {
     // Find the rightmost hole point
@@ -299,10 +311,8 @@ void removeHole(PointList const& pointList, IndexList& indexList, std::vector<In
     IndexList hole;
     extractRightmostHole(pointList, holeList, hole, rightmostPoint);
 
-    Point holePoint = pointList[hole[rightmostPoint]];
-    Point bestDirection =
-        normalize(normalize(holePoint - pointList[hole[(rightmostPoint + 1) % hole.size()]]) +
-                  normalize(holePoint - pointList[hole[(rightmostPoint + hole.size() - 1) % hole.size()]]));
+    auto holePoint = pointList[hole[rightmostPoint]];
+    auto bestDirection = bestDirectionFor(rightmostPoint, pointList, hole);
 
     // Find a point to connect that to
     int bestPoint = findVisiblePoint(pointList, indexList, holePoint, bestDirection);

@@ -228,9 +228,9 @@ TEST_CASE("Issue #1 minified")
         105, 106, 107, 108, 109, 110,
     };
 
-    std::ofstream svg("before.svg");
-    svg::writePolygon(svg, pointList, outer, { holeThatGeneratedWeirdConnection, holeThatTriggersTheCrash });
-    auto good = removeHoles(pointList, outer, { holeThatGeneratedWeirdConnection });
-    auto bad = removeHoles(pointList, good, { holeThatTriggersTheCrash });
-    REQUIRE(true);
+    auto before = removeHoles(pointList, outer, { holeThatGeneratedWeirdConnection });
+    auto after = removeHoles(pointList, before, { holeThatTriggersTheCrash });
+
+    std::ofstream svg2("done.svg");
+    svg::writePolygon(svg2, pointList, after, {});
 }
