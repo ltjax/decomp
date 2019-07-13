@@ -1,5 +1,6 @@
 #include "output.hpp"
 #include <limits>
+#include <algorithm>
 
 using namespace decomp;
 
