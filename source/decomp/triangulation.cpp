@@ -15,11 +15,12 @@ namespace
 int findRightmostPoint(PointList const& pointList, IndexList const& polygon)
 {
     assert(!polygon.empty());
-
-    return std::max_element(
-               polygon.begin(), polygon.end(),
-               [&](std::uint16_t lhs, std::uint16_t rhs) { return pointList[lhs].x() < pointList[rhs].x(); }) -
-           polygon.begin();
+    auto leftOf = [&](std::uint16_t lhs, std::uint16_t rhs) { return pointList[lhs].x() < pointList[rhs].x(); };
+    auto maxElement = std::max_element(
+        polygon.begin(), polygon.end(),
+        leftOf);
+    return static_cast<int>(maxElement -
+           polygon.begin());
 }
 
 inline double determinant(Point const& lhs, Point const& rhs)
@@ -76,7 +77,7 @@ bool segmentsIntersect(Point const& a, Point const& b, Point const& c, Point con
 
 bool pointVisibleFrom(PointList const& pointList, IndexList const& indexList, int relativeIndex, Point const& from)
 {
-    int N = indexList.size();
+    int N = static_cast<int>(indexList.size());
     auto target = pointList[indexList[relativeIndex]];
 
     for (int i = 0; i < N; ++i)
@@ -99,7 +100,7 @@ struct VertexNode;
 
 struct EarLess
 {
-    bool operator()(VertexNode* lhs, VertexNode* rhs);
+    bool operator()(VertexNode* lhs, VertexNode* rhs) const;
 };
 
 // Using the order and iterator constancy of the set as
@@ -118,7 +119,7 @@ struct VertexNode
     EarPriorityQueue::iterator queueNode;
 };
 
-bool EarLess::operator()(VertexNode* lhs, VertexNode* rhs)
+inline bool EarLess::operator()(VertexNode* lhs, VertexNode* rhs) const
 {
     return lhs->minimumInteriorAngle < rhs->minimumInteriorAngle;
 }
@@ -246,7 +247,7 @@ int findVisiblePoint(PointList const& pointList,
     auto getPoint = [&](int i) { return pointList[indexList[i]]; };
 
     int bestPoint = -1;
-    int N = indexList.size();
+    int N = static_cast<int>(indexList.size());
     for (int i = 0; i < N; ++i)
     {
         // Look for points to the right side of our 'from'
@@ -364,7 +365,7 @@ IndexList decomp::earClipping(PointList const& pointList, IndexList const& index
     std::vector<VertexNode> nodeList(indexList.size());
     IndexList resultList;
 
-    int N = indexList.size();
+    int N = static_cast<int>(indexList.size());
     if (N < 3)
         throw std::invalid_argument("Polygon needs at least 3 vertices");
 

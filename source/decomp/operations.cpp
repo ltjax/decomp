@@ -8,7 +8,8 @@ IndexList Remapper::apply(IndexList const& indices)
     result.reserve(indices.size());
     for (auto each : indices)
     {
-        result.push_back(mMapping.insert(std::make_pair(each, mMapping.size())).first->second);
+        auto const inserted = mMapping.insert(std::make_pair(each, static_cast<std::uint16_t>(mMapping.size())));
+        result.push_back(inserted.first->second);
     }
     return result;
 }
