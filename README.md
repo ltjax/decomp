@@ -1,4 +1,7 @@
 # decomp
+
+[![Build status](https://ci.appveyor.com/api/projects/status/485fudsl4vv5ikfy?svg=true)](https://ci.appveyor.com/project/ltjax/decomp)
+
 This is a C++11 library to decompose simple 2D polygons with holes into a list of convex polygons.
 It's primary application is navmesh-generation. All polygons are encoded as a list of indices
 into a constant point list, so it's easy to extract connectivity information later.
