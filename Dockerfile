@@ -27,6 +27,7 @@ RUN wget https://github.com/catchorg/Catch2/archive/v2.11.3.tar.gz -O catch2.tar
 
 ADD source /opt/decomp/source
 ADD test /opt/decomp/test
+ADD demo /opt/decomp/demo
 ADD CMakeLists.txt /opt/decomp/.
 RUN cd /opt/decomp \
  && ls \
@@ -38,11 +39,7 @@ RUN cd /opt/decomp \
         .. \
  && make \
  && make install
-ADD demo/demo.cpp /opt/decomp_demo/demo.cpp
-RUN cd /opt/decomp_demo \
- && g++ -std=c++11 demo.cpp -o demo -ldecomp \
- && ./demo
 
 FROM debian:buster-slim as runner
-COPY --from=builder /opt/decomp_demo/demo /opt/decomp_demo/demo
-ENTRYPOINT [ "/opt/decomp_demo/demo" ]
+COPY --from=builder /usr/local/bin/decomp_demo /usr/local/bin/decomp_demo
+ENTRYPOINT [ "/usr/local/bin/decomp_demo" ]
