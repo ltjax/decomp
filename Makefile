@@ -1,4 +1,6 @@
-all:
+all: docker_build
+
+build:
 	mkdir -p build
 	cd build && \
 	cmake \
@@ -8,4 +10,4 @@ all:
     make
 
 docker_build:
-	docker build . -t pouet
+	docker build . -t decomp
