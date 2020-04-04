@@ -38,6 +38,7 @@ RUN cd /opt/decomp \
        -Ddecomp_BUILD_TESTS:BOOL=ON \
         .. \
  && make \
+ && make test \
  && make install
 
 FROM debian:buster-slim as runner
