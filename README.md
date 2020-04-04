@@ -16,9 +16,9 @@ std::vector<Point> pointList={
   // points on the outer polygon
   {-4, 0}, {-3, -2}, {3, -2}, {4, 0}, {3, 2}, {-3, 2},
   // points on the left hole
-  {-3, 0}, {-2, -1}, {-1, 0}, {-2, 1}, 
+  {-3, 0}, {-2, -1}, {-1, 0}, {-2, 1},
   // points on the right hole
-  {1, 0}, {2, -1}, {3, 0}, {2, 1} 
+  {1, 0}, {2, -1}, {3, 0}, {2, 1}
 };
 
 std::vector<std::uint16_t> outerPolygon={
