@@ -15,6 +15,7 @@ ${INSTALL_DIRECTORY}/lib/libdecomp.a:
         -DCMAKE_INSTALL_PREFIX=$(shell pwd)/${INSTALL_DIRECTORY} \
         .. && \
     make && \
+    make test && \
     make install
 
 plot: ${INSTALL_DIRECTORY}/bin/decomp_demo
