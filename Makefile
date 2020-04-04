@@ -1,8 +1,10 @@
-all: docker_build
+all: plot
 
 INSTALL_DIRECTORY=decomp_install
 
 build: ${INSTALL_DIRECTORY}/lib/libdecomp.a
+
+${INSTALL_DIRECTORY}/bin/decomp_demo: ${INSTALL_DIRECTORY}/lib/libdecomp.a
 
 ${INSTALL_DIRECTORY}/lib/libdecomp.a:
 	mkdir -p build && \
@@ -15,15 +17,8 @@ ${INSTALL_DIRECTORY}/lib/libdecomp.a:
     make && \
     make install
 
-demo/demo: demo/demo.cpp ${INSTALL_DIRECTORY}/lib/libdecomp.a
-	g++ -std=c++11 \
-		demo/demo.cpp \
-		-o demo/demo \
-		-I${INSTALL_DIRECTORY}/include \
-		-L${INSTALL_DIRECTORY}/lib -ldecomp
-
-plot: demo/demo
-	./demo/demo | python
+plot: ${INSTALL_DIRECTORY}/bin/decomp_demo
+	${INSTALL_DIRECTORY}/bin/decomp_demo | python
 
 clean:
 	@rm -rf build
@@ -31,6 +26,3 @@ clean:
 	@rm -f demo/demo
 
 .PHONY = plot clean
-
-docker_build:
-	docker build . -t decomp
