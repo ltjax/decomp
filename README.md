@@ -32,3 +32,7 @@ std::vector<std::vector<std::uint16_t>> holeList={
 
 auto convexPolygonList=decompose(pointList, outerPolygon, holeList);
 ```
+
+It produces the following decomposition:
+
+![](demo/demo.png)
