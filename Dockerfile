@@ -1,10 +1,16 @@
-FROM gcc:9.1
+FROM debian:buster-slim as builder
 
-RUN mkdir -p /opt/cmake && \
-    wget https://github.com/Kitware/CMake/releases/download/v3.17.0/cmake-3.17.0-Linux-x86_64.sh -O cmake.sh && \
-    sh ./cmake.sh --exclude-subdir --prefix=/opt/cmake && \
-    rm -rf cmake.sh
-ENV PATH="/opt/cmake/bin:${PATH}"
+RUN apt-get update --yes --allow-releaseinfo-change \
+ && apt-get install --no-install-recommends --yes \
+        build-essential \
+        ca-certificates \
+        cmake \
+        g++ \
+        unzip \
+        wget \
+ && apt-get clean \
+ && rm -rf /tmp/* /var/tmp/* \
+ && rm -rf /var/lib/apt/lists
 
 RUN wget https://github.com/catchorg/Catch2/archive/v2.11.3.tar.gz -O catch2.tar.gz && \
     mkdir -p catch2_SRC && \
@@ -19,7 +25,6 @@ RUN wget https://github.com/catchorg/Catch2/archive/v2.11.3.tar.gz -O catch2.tar
     rm -rf catch2_build  && \
     rm -rf catch2.tar.gz catch2_SRC
 
-RUN gcc --version && cmake --version
 ADD source /opt/decomp/source
 ADD test /opt/decomp/test
 ADD CMakeLists.txt /opt/decomp/.
@@ -29,11 +34,15 @@ RUN cd /opt/decomp \
  && cd build \
  && cmake \
        -Ddecomp_USE_CONAN:BOOL=OFF \
-        -Ddecomp_BUILD_TESTS:BOOL=ON \
+       -Ddecomp_BUILD_TESTS:BOOL=ON \
         .. \
  && make \
  && make install
-ADD demo.cpp /opt/decomp_demo/demo.cpp
+ADD demo/demo.cpp /opt/decomp_demo/demo.cpp
 RUN cd /opt/decomp_demo \
  && g++ -std=c++11 demo.cpp -o demo -ldecomp \
  && ./demo
+
+FROM debian:buster-slim as runner
+COPY --from=builder /opt/decomp_demo/demo /opt/decomp_demo/demo
+ENTRYPOINT [ "/opt/decomp_demo/demo" ]
