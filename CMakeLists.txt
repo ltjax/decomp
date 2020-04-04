@@ -60,6 +60,9 @@ if(${PROJECT_NAME}_BUILD_TESTS)
     target_link_libraries(${TEST_NAME}
       PUBLIC decomp Catch2::Catch2)
   endif()
+  include(CTest)
+  enable_testing()
+  add_test(NAME test_syntaxe COMMAND test_${PROJECT_NAME})
 endif()
 
 add_executable(decomp_demo
