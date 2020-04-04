@@ -29,29 +29,29 @@ std::ostream & dump_python_plot_script(
 
     for (auto& hole:holeList)
     {
-        out << "outerPolygon = np.array([";
+        out << "hole = np.array([";
         for (auto& e:hole)
             out << "[" << pointList[e][0] << "," << pointList[e][1] << "]," << std::endl;
         out << "[" << pointList[hole[0]][0] << "," << pointList[hole[0]][1] << "]," << std::endl;
         out << "])" << std::endl;
-        out << "plt.plot(outerPolygon[:,0], outerPolygon[:,1])" << std::endl;
+        out << "plt.plot(hole[:,0], hole[:,1])" << std::endl;
     }
     out << "plt.grid()" << std::endl;
 
     out << "sp = plt.subplot(2, 1, 2)" << std::endl;
-    for (auto& hole:convexPolygonList)
+    for (auto& convexPolygon:convexPolygonList)
     {
         out << "r = random.random()" << std::endl;
         out << "b = random.random()" << std::endl;
         out << "g = random.random()" << std::endl;
         out << "color = (r, g, b)" << std::endl;
-        out << "outerPolygon = np.array([";
-        for (auto& e:hole)
+        out << "convexPolygon = np.array([";
+        for (auto& e:convexPolygon)
             out << "[" << pointList[e][0] << "," << pointList[e][1] << "]," << std::endl;
-        out << "[" << pointList[hole[0]][0] << "," << pointList[hole[0]][1] << "]," << std::endl;
+        out << "[" << pointList[convexPolygon[0]][0] << "," << pointList[convexPolygon[0]][1] << "]," << std::endl;
         out << "])" << std::endl;
-        out << "plt.plot(outerPolygon[:,0], outerPolygon[:,1], color=color)" << std::endl;
-        out << "poly = patches.Polygon(outerPolygon, fc=color, alpha=0.8)" << std::endl;
+        out << "plt.plot(convexPolygon[:,0], convexPolygon[:,1], color=color)" << std::endl;
+        out << "poly = patches.Polygon(convexPolygon, fc=color, alpha=0.8)" << std::endl;
         out << "sp.add_patch(poly)" << std::endl;
     }
 
