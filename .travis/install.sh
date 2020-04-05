@@ -15,7 +15,6 @@ if [[ "$(uname -s)" == 'Linux' ]]; then
     pip install conan_package_tools --user
     cmake --version
     conan --version
-    conan config install conan_config/
     conan profile new default --detect --force
     conan profile update settings.compiler.libcxx=libstdc++11 default
 fi
@@ -27,5 +26,4 @@ if [[ "$(uname -s)" == 'Darwin' ]]; then
     pip3 install conan_package_tools
     conan --version
     conan user
-    conan config install conan_config/
 fi
