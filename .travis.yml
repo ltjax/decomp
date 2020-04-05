@@ -35,7 +35,7 @@ jobs:
       env: GCC_VERSION=8 CONAN_GCC_VERSIONS=8
       
     - <<: *linux
-      env: GCC_VERSION=8 CONAN_GCC_VERSIONS=7
+      env: GCC_VERSION=7 CONAN_GCC_VERSIONS=7
       
     - <<: *osx
       osx_image: xcode11.3
