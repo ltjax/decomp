@@ -21,9 +21,15 @@ fi
 
 if [[ "$(uname -s)" == 'Darwin' ]]; then  
     python3 --version
-
-    pip3 install conan --upgrade
-    pip3 install conan_package_tools
+    
+    # Create virtualenv called venv
+    python3 -m venv venv
+    
+    # Activate it..
+    source venv/bin/activate
+    
+    # Install conan and the package tools there
+    pip install conan conan_package_tools --upgrade
     conan --version
     conan user
 fi
