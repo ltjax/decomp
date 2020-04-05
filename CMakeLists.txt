@@ -8,7 +8,7 @@ option(${PROJECT_NAME}_USE_CONAN "Use conan" ON)
 option(${PROJECT_NAME}_BUILD_TESTS "Build tests" ON)
 
 if (${PROJECT_NAME}_BUILD_TESTS AND NOT ${PROJECT_NAME}_USE_CONAN)
-  message(FATAL_ERROR "Cannot build tests without conan")
+  find_package(Catch2 REQUIRED)
 endif()
 
 if (${PROJECT_NAME}_USE_CONAN)
@@ -32,11 +32,11 @@ add_library(${TARGET_NAME}
 
 target_include_directories(${TARGET_NAME}
   INTERFACE source)
-  
+
 install(TARGETS ${TARGET_NAME}
   ARCHIVE DESTINATION lib)
 
-install(FILES 
+install(FILES
   ${HEADERS}
   DESTINATION
   include/decomp/)
@@ -53,6 +53,11 @@ if(${PROJECT_NAME}_BUILD_TESTS)
     test/decomposition.cpp
     test/winding.cpp)
 
-  target_link_libraries(${TEST_NAME}
-    PUBLIC decomp CONAN_PKG::Catch2)
+  if (${PROJECT_NAME}_USE_CONAN)
+    target_link_libraries(${TEST_NAME}
+      PUBLIC decomp CONAN_PKG::Catch2)
+  else()
+    target_link_libraries(${TEST_NAME}
+      PUBLIC decomp Catch2::Catch2)
+  endif()
 endif()
