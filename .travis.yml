@@ -1,0 +1,55 @@
+
+env:
+  global:
+    - CONAN_USERNAME: "ltjax"
+    - CONAN_LOGIN_USERNAME: "ltjax"
+    - CONAN_UPLOAD: "https://api.bintray.com/conan/ltjax/conan"
+    - CONAN_USER_HOME: "/tmp/conan"
+
+_linux: &linux
+  os: linux
+  dist: xenial
+  language: cpp
+  addons:
+    apt:
+      update: true
+      sources:
+        - ubuntu-toolchain-r-test
+      packages:
+        - git
+        - build-essential
+        - python3-pip
+        - python3-setuptools
+
+_osx: &osx
+  os: osx
+  language: generic
+
+jobs:
+  include:
+    - <<: *linux
+      env: GCC_VERSION=9 CONAN_GCC_VERSIONS=9
+      
+    - <<: *linux
+      env: GCC_VERSION=8 CONAN_GCC_VERSIONS=8
+      
+    - <<: *linux
+      env: GCC_VERSION=8 CONAN_GCC_VERSIONS=7
+      
+    - <<: *osx
+      osx_image: xcode11.3
+      env: CONAN_APPLE_CLANG_VERSIONS=10.0
+        
+sudo: required
+
+cache:
+  directories:
+  - $CONAN_USER_HOME
+
+install:
+  - chmod +x .travis/install.sh
+  - ./.travis/install.sh
+
+script:
+  - chmod +x .travis/run.sh
+  - ./.travis/run.sh
