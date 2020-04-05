@@ -13,7 +13,7 @@ class DecompConan(ConanFile):
     options = {"shared": [True, False]}
     default_options = "shared=False"
     generators = "cmake"
-    exports_sources = "source/*", "test/*", "include/*", "CMakeLists.txt",
+    exports_sources = "source/*", "test/*", "demo/*", "include/*", "CMakeLists.txt",
     build_requires = "Catch2/2.7.2@catchorg/stable",
 
     def _configured_cmake(self):
