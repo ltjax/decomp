@@ -5,6 +5,7 @@
 // polygon.
 
 #include <vector>
+#include <fstream>
 #include <iostream>
 
 #include <decomp/convex_decomposition.hpp>
@@ -92,5 +93,19 @@ int main()
     dump_python_plot_script(
         std::cout, pointList, outerPolygon, holeList, convexPolygonList);
 
+    // Create SVG images of input and output
+    // A scaling factor is used to have nice SVG image sizes.
+    const double scaling_factor = 100.0;
+    std::vector<decomp::Point> pointListOut;
+    for (auto& p: pointList)
+    {
+        pointListOut.push_back(decomp::Point(scaling_factor * p.x(), scaling_factor * p.y()));
+    }
+
+    std::ofstream svg("input.svg");
+    decomp::svg::writePolygon(svg, pointListOut, outerPolygon, holeList);
+
+    std::ofstream svg_output("output.svg");
+    decomp::svg::writePolygon(svg_output, pointListOut, {}, convexPolygonList);
     return 0;
 }
