@@ -1,12 +1,11 @@
-// This program illustrates the use of decomp library
+// This program illustrates the use of decomp library.
 // It creates the convex decomposition of a polygon with
-// two holes and displays to standard output a python script
-// that displays the input polygon and patches of its convex
-// polygon.
-
-#include <vector>
-#include <fstream>
-#include <iostream>
+// two holes. Input and output is exported to standard output
+// as JSON.
+// This JSON can be used to display the input polygon and
+// the convex polygons, with Python script plot_decomp.py
+//
+// ./demo | python plot_decomp.py
 
 #include <decomp/convex_decomposition.hpp>
 #include <decomp/output.hpp>
