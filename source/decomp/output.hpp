@@ -11,8 +11,10 @@ namespace svg
 {
 /** Render the given polygon as SVG, mostly for debugging
  */
-void writePolygon(std::ostream& out, PointList const& points, IndexList const& indices,
-        std::vector<IndexList> const& holes);
+void writePolygon(std::ostream& out,
+                  PointList const& points,
+                  IndexList const& indices,
+                  std::vector<IndexList> const& holes);
 
 /** Render the given triangles as SVG, mostly for debugging
  */
@@ -24,12 +26,11 @@ namespace json
 {
 /** Convert the given inputs and output to a JSON text representation that is suitable for export and plotting.
  */
-std::ostream & dump(
-    std::ostream &out,
-    PointList const& pointList,
-    IndexList const& outerPolygon,
-    std::vector<IndexList> const& holeList,
-    std::vector<IndexList> const& convexPolygonList);
+std::ostream& dump(std::ostream& out,
+                   PointList const& pointList,
+                   IndexList const& outerPolygon,
+                   std::vector<IndexList> const& holeList,
+                   std::vector<IndexList> const& convexPolygonList);
 } // namespace json
 
 /** Convert the given point list to a text representation that is suitable for initializer list usage.
