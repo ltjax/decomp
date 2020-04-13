@@ -21,7 +21,7 @@ void writeJsonArray(std::ostream& out, Container const& container, F f)
   out << "[";
   auto i = container.begin();
   if (i != container.end())
-  f(out, *i++);
+    f(out, *i++);
   for (;i != container.end();++i)
   {
     out << ",";
@@ -30,7 +30,7 @@ void writeJsonArray(std::ostream& out, Container const& container, F f)
   out << "]";
 }
 
-std::ostream & dump_json(
+std::ostream & dumpJson(
     std::ostream &out,
     const PointList& pointList,
     const IndexList& outerPolygon,
@@ -39,7 +39,7 @@ std::ostream & dump_json(
 {
   out << "{" << std::endl;
   out << "\"vertices\":" << std::endl;
-  writeJsonArray(out, pointList, [](std::ostream& os, const Point& p) {os<<"["<<p[0]<<","<<p[1]<<"]";});
+  writeJsonArray(out, pointList, [](std::ostream& os, const Point& p) {os << "[" << p[0] << "," << p[1] << "]";});
   out << "," << std::endl;
   out << "\"input\": {" << std::endl;
   out << "\"outer\": " << std::endl;
@@ -83,7 +83,7 @@ int main()
   const std::vector<IndexList> convexPolygonList = decompose(
     pointList, outerPolygon, holeList);
 
-  dump_json(
+  dumpJson(
     std::cout, pointList, outerPolygon, holeList, convexPolygonList);
 
   return 0;
