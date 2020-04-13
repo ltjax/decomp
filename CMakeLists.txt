@@ -62,7 +62,7 @@ if(${PROJECT_NAME}_BUILD_TESTS)
   endif()
   include(CTest)
   enable_testing()
-  add_test(NAME test_syntaxe COMMAND test_${PROJECT_NAME})
+  add_test(NAME test_${PROJECT_NAME} COMMAND test_${PROJECT_NAME})
 endif()
 
 add_executable(decomp_demo
