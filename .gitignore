@@ -1,5 +1,8 @@
 /*build*/
+/*install*/
 /.idea/
+/.vscode/
 /out/
 /.vs/
 /CMakeSettings.json
+*.svg

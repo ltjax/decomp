@@ -20,6 +20,18 @@ void writeTriangles(std::ostream& out, PointList const& points, IndexList const&
 
 } // namespace svg
 
+namespace json
+{
+/** Convert the given inputs and output to a JSON text representation that is suitable for export and plotting.
+ */
+std::ostream & dump(
+    std::ostream &out,
+    PointList const& pointList,
+    IndexList const& outerPolygon,
+    std::vector<IndexList> const& holeList,
+    std::vector<IndexList> const& convexPolygonList);
+} // namespace json
+
 /** Convert the given point list to a text representation that is suitable for initializer list usage.
  */
 void writePoints(std::ostream& out, PointList const& points);

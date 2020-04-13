@@ -60,4 +60,16 @@ if(${PROJECT_NAME}_BUILD_TESTS)
     target_link_libraries(${TEST_NAME}
       PUBLIC decomp Catch2::Catch2)
   endif()
+  include(CTest)
+  enable_testing()
+  add_test(NAME test_${PROJECT_NAME} COMMAND test_${PROJECT_NAME})
 endif()
+
+add_executable(decomp_demo
+  demo/demo.cpp)
+
+target_link_libraries(decomp_demo
+  PUBLIC decomp)
+
+install(TARGETS decomp_demo
+  RUNTIME DESTINATION bin)

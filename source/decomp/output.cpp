@@ -141,3 +141,51 @@ void decomp::writeIndices(std::ostream& out, IndexList const& indices)
         out << index << ",";
     out << "}";
 }
+
+namespace
+{
+template <class Container, class F>
+void writeJsonArray(std::ostream& out, Container const& container, F f)
+{
+    out << "[";
+    auto i = container.begin();
+    if (i != container.end())
+        f(out, *i++);
+    for (;i != container.end();++i)
+    {
+        out << ",";
+        f(out, *i);
+    }
+    out << "]";
+}
+}
+
+std::ostream & json::dump(
+    std::ostream &out,
+    PointList const& pointList,
+    IndexList const& outerPolygon,
+    std::vector<IndexList> const& holeList,
+    std::vector<IndexList> const& convexPolygonList)
+{
+    out << "{" << std::endl;
+    out << "\"vertices\":" << std::endl;
+    writeJsonArray(out, pointList, [](std::ostream& os, const Point& p) {os << "[" << p[0] << "," << p[1] << "]";});
+    out << "," << std::endl;
+    out << "\"input\": {" << std::endl;
+    out << "\"outer\": " << std::endl;
+    writeJsonArray(out, outerPolygon, [](std::ostream& os, const std::uint16_t& p) {os << p;});
+    out << "," << std::endl;
+    out << "\"holes\": " << std::endl;
+    writeJsonArray(out, holeList, [](std::ostream& os, IndexList const& hole)
+  {
+    writeJsonArray(os, hole, [](std::ostream& os, std::uint16_t index){os << index;});
+  });
+    out << std::endl << "}," << std::endl;
+    out << "\"output\":" << std::endl << "[";
+  writeJsonArray(out, convexPolygonList, [](std::ostream& os, IndexList const& hole)
+  {
+    writeJsonArray(os, hole, [](std::ostream& os, std::uint16_t index){os << index;});
+  });
+    out << "}" << std::endl;
+  return out;
+}

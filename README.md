@@ -1,6 +1,7 @@
 # decomp
 
 [![Build status](https://ci.appveyor.com/api/projects/status/485fudsl4vv5ikfy?svg=true)](https://ci.appveyor.com/project/ltjax/decomp)
+[![Build Status](https://api.travis-ci.org/ltjax/decomp.svg?branch=master)](https://travis-ci.org/Gjacquenot/decomp)
 
 This is a C++11 library to decompose simple 2D polygons with holes into a list of convex polygons.
 It's primary application is navmesh-generation. All polygons are encoded as a list of indices
@@ -16,9 +17,9 @@ std::vector<Point> pointList={
   // points on the outer polygon
   {-4, 0}, {-3, -2}, {3, -2}, {4, 0}, {3, 2}, {-3, 2},
   // points on the left hole
-  {-3, 0}, {-2, -1}, {-1, 0}, {-2, 1}, 
+  {-3, 0}, {-2, -1}, {-1, 0}, {-2, 1},
   // points on the right hole
-  {1, 0}, {2, -1}, {3, 0}, {2, 1} 
+  {1, 0}, {2, -1}, {3, 0}, {2, 1}
 };
 
 std::vector<std::uint16_t> outerPolygon={
@@ -32,3 +33,7 @@ std::vector<std::vector<std::uint16_t>> holeList={
 
 auto convexPolygonList=decompose(pointList, outerPolygon, holeList);
 ```
+
+It produces the following decomposition:
+
+![](demo/demo.png)
