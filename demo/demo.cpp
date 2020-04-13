@@ -9,56 +9,12 @@
 #include <iostream>
 
 #include <decomp/convex_decomposition.hpp>
-#include <decomp/triangulation.hpp>
-#include <decomp/operations.hpp>
 #include <decomp/output.hpp>
 
+#include <iostream>
+#include <vector>
+
 using namespace decomp;
-
-template <class Container, class F>
-void writeJsonArray(std::ostream& out, Container const& container, F f)
-{
-  out << "[";
-  auto i = container.begin();
-  if (i != container.end())
-    f(out, *i++);
-  for (;i != container.end();++i)
-  {
-    out << ",";
-    f(out, *i);
-  }
-  out << "]";
-}
-
-std::ostream & dumpJson(
-    std::ostream &out,
-    const PointList& pointList,
-    const IndexList& outerPolygon,
-    const std::vector<IndexList>& holeList,
-    const std::vector<IndexList>& convexPolygonList)
-{
-  out << "{" << std::endl;
-  out << "\"vertices\":" << std::endl;
-  writeJsonArray(out, pointList, [](std::ostream& os, const Point& p) {os << "[" << p[0] << "," << p[1] << "]";});
-  out << "," << std::endl;
-  out << "\"input\": {" << std::endl;
-  out << "\"outer\": " << std::endl;
-  writeJsonArray(out, outerPolygon, [](std::ostream& os, const std::uint16_t& p) {os << p;});
-  out << "," << std::endl;
-  out << "\"holes\": " << std::endl;
-  writeJsonArray(out, holeList, [](std::ostream& os, IndexList const& hole)
-  {
-    writeJsonArray(os, hole, [](std::ostream& os, std::uint16_t index){os << index;});
-  });
-  out << std::endl << "}," << std::endl;
-  out << "\"output\":" << std::endl << "[";
-  writeJsonArray(out, convexPolygonList, [](std::ostream& os, IndexList const& hole)
-  {
-    writeJsonArray(os, hole, [](std::ostream& os, std::uint16_t index){os << index;});
-  });
-  out << "}" << std::endl;
-  return out;
-}
 
 int main()
 {
@@ -83,7 +39,7 @@ int main()
   const std::vector<IndexList> convexPolygonList = decompose(
     pointList, outerPolygon, holeList);
 
-  dumpJson(
+  json::dump(
     std::cout, pointList, outerPolygon, holeList, convexPolygonList);
 
   return 0;
