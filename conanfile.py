@@ -3,7 +3,7 @@ from conans import ConanFile, CMake, tools
 
 class DecompConan(ConanFile):
     name = "decomp"
-    version = "1.0"
+    version = "1.1"
     license = "MIT"
     author = "Marius Elvert marius.elvert@googlemail.com"
     url = "https://github.com/ltjax/decomp"
