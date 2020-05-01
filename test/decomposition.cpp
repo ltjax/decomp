@@ -1,6 +1,6 @@
 #include <algorithm>
-#include <decomp/convex_decomposition.hpp>
 #include <catch2/catch.hpp>
+#include <decomp/convex_decomposition.hpp>
 
 using namespace decomp;
 
@@ -46,7 +46,7 @@ bool allConvex(PointList const& pointList, std::vector<IndexList> const& polygon
 
     return true;
 }
-}
+} // namespace
 
 TEST_CASE("hertel-mehlhorn")
 {
@@ -54,7 +54,7 @@ TEST_CASE("hertel-mehlhorn")
 
     std::vector<std::uint16_t> triangleList = { 1, 4, 5, 1, 3, 4, 0, 1, 5, 1, 2, 3 };
 
-    auto decomposed = hertelMehlhorn(pointList, triangleList);
+    auto decomposed = hertelMehlhorn(pointList, triangleList, {});
 
     REQUIRE(allConvex(pointList, decomposed));
 }
@@ -181,7 +181,7 @@ TEST_CASE("medium decomposition")
 
     auto triangleList = earClipping(pointList, polygon);
 
-    auto decomposed = hertelMehlhorn(pointList, triangleList);
+    auto decomposed = hertelMehlhorn(pointList, triangleList, {});
 
     REQUIRE(allConvex(pointList, decomposed));
 }
@@ -191,7 +191,7 @@ TEST_CASE("simple decomposition")
     PointList const pointList = { { 1, 2 }, { 2, 0 }, { 1, 1 }, { 0, 0 } };
 
     IndexList triangleList = { 2, 1, 0, 3, 2, 0 };
-    auto convexList = hertelMehlhorn(pointList, triangleList);
+    auto convexList = hertelMehlhorn(pointList, triangleList, {});
 
     REQUIRE(allConvex(pointList, convexList));
 }

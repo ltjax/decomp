@@ -50,6 +50,7 @@ if(${PROJECT_NAME}_BUILD_TESTS)
     test/remove_holes.cpp
     test/ear_clipping.cpp
     test/half_edge.cpp
+    test/edge_flip.cpp
     test/decomposition.cpp
     test/winding.cpp)
 

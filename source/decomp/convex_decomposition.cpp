@@ -1,19 +1,17 @@
-#include <utility>
-
 #include "convex_decomposition.hpp"
 #include <algorithm>
 #include <cassert>
 #include <map>
 #include <set>
-#include <unordered_map>
 #include <stdexcept>
+#include <unordered_map>
+#include <utility>
 
 using namespace decomp;
 
 namespace
 {
 
-using EdgeID = std::pair<std::uint16_t, std::uint16_t>;
 
 EdgeID getEdgeID(std::uint16_t a, std::uint16_t b)
 {
@@ -90,6 +88,9 @@ bool isInternallyConvex(Point const& a, Point const& b, Point const& c)
 
 bool isEdgeRemoveable(PointList const& pointList, decomp::HalfEdge* edge)
 {
+    if (edge->fixed)
+        return false;
+
     if (!edge->partner)
         return false;
 
@@ -313,7 +314,7 @@ std::set<EdgeID> deleteEdges(EdgePriorityQueue& priorityQueue, std::vector<Point
 
     return deletedEdgeSet;
 }
-}
+} // namespace
 
 void decomp::edgeFlip(PointList const& pointList, std::vector<std::unique_ptr<HalfEdge>> const& edges)
 {
@@ -347,12 +348,17 @@ void decomp::edgeFlip(PointList const& pointList, std::vector<std::unique_ptr<Ha
     }
 }
 
-std::vector<std::unique_ptr<HalfEdge>> decomp::buildHalfEdgeGraph(IndexList const& triangleList)
+std::vector<std::unique_ptr<HalfEdge>> decomp::buildHalfEdgeGraph(IndexList const& triangleList,
+                                                                  std::vector<EdgeID> const& fixedEdges)
 {
     if (triangleList.size() % 3 != 0)
     {
         throw std::runtime_error("Given triangle list does not have size divisible by 3");
     }
+
+    std::set<EdgeID> fixed;
+    for (auto const& each : fixedEdges)
+        fixed.insert(getEdgeID(each.first, each.second));
 
     using OpenEdgeMap = std::map<EdgeID, HalfEdge*>;
     std::vector<std::unique_ptr<decomp::HalfEdge>> halfEdgeList;
@@ -362,7 +368,7 @@ std::vector<std::unique_ptr<HalfEdge>> decomp::buildHalfEdgeGraph(IndexList cons
     int const N = static_cast<int>(triangleList.size());
 
     for (int i = 0; i < N; ++i)
-        halfEdgeList[i].reset(new HalfEdge);
+        halfEdgeList[i].reset(new HalfEdge);    
 
     for (int i = 0; (i + 2) < N; i += 3)
     {
@@ -377,6 +383,9 @@ std::vector<std::unique_ptr<HalfEdge>> decomp::buildHalfEdgeGraph(IndexList cons
 
             // Check if we have an open partner for this edge
             auto edgeID = getEdgeID(triangleList[a], triangleList[b]);
+
+            halfEdgeList[a]->fixed = contains(fixed, edgeID);
+
             auto inserted = openEdgeList.insert({ edgeID, halfEdgeList[a].get() });
             if (!inserted.second)
             {
@@ -395,10 +404,12 @@ std::vector<std::unique_ptr<HalfEdge>> decomp::buildHalfEdgeGraph(IndexList cons
     return halfEdgeList;
 }
 
-std::vector<IndexList> decomp::hertelMehlhorn(PointList const& pointList, IndexList const& triangleList)
+std::vector<IndexList> decomp::hertelMehlhorn(PointList const& pointList,
+                                              IndexList const& triangleList,
+                                              std::vector<EdgeID> const& fixedEdges)
 {
     // Extract connectivity information
-    auto graph = buildHalfEdgeGraph(triangleList);
+    auto graph = buildHalfEdgeGraph(triangleList, fixedEdges);
 
     // Refine the triangulation by flipping edges to increase the minimum interior angle
     edgeFlip(pointList, graph);
@@ -415,12 +426,14 @@ std::vector<IndexList> decomp::hertelMehlhorn(PointList const& pointList, IndexL
     return extractPolygonList(graph, deletedEdgeSet);
 }
 
-std::vector<IndexList>
-decomp::decompose(PointList const& pointList, IndexList simplePolygon, std::vector<IndexList> holeList)
+std::vector<IndexList> decomp::decompose(PointList const& pointList,
+                                         IndexList simplePolygon,
+                                         std::vector<IndexList> holeList,
+                                         std::vector<EdgeID> const& fixedEdges)
 {
     auto simpleWithoutHoles = removeHoles(pointList, std::move(simplePolygon), std::move(holeList));
 
     auto triangleList = earClipping(pointList, simpleWithoutHoles);
 
-    return hertelMehlhorn(pointList, triangleList);
+    return hertelMehlhorn(pointList, triangleList, fixedEdges);
 }
