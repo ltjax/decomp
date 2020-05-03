@@ -11,7 +11,7 @@ TEST_CASE("flip edges for better triangles")
     auto graph = buildHalfEdgeGraph(triangleList, {});
     edgeFlip(pointList, graph);
 
-    auto one = std::find_if(graph.begin(), graph.end(), [](auto const& edge) { return edge->vertex == 0; });
+    auto one = std::find_if(graph.begin(), graph.end(), [](std::unique_ptr<HalfEdge> const& edge) { return edge->vertex == 0; });
     REQUIRE(one != graph.end());
 
     auto edgeOne = one->get();
@@ -19,7 +19,7 @@ TEST_CASE("flip edges for better triangles")
     REQUIRE(edgeOne->next->vertex == 1);
     REQUIRE(edgeOne->next->next->vertex == 3);
 
-    auto two = std::find_if(graph.begin(), graph.end(), [](auto const& edge) { return edge->vertex == 2; });
+    auto two = std::find_if(graph.begin(), graph.end(), [](std::unique_ptr<HalfEdge> const& edge) { return edge->vertex == 2; });
     REQUIRE(two != graph.end());
 
     auto edgeTwo = two->get();
@@ -37,7 +37,7 @@ TEST_CASE("do not flip edges that are fixed")
     auto graph = buildHalfEdgeGraph(triangleList, fixedEdges);
     edgeFlip(pointList, graph);
 
-    auto one = std::find_if(graph.begin(), graph.end(), [](auto const& edge) { return edge->vertex == 1; });
+    auto one = std::find_if(graph.begin(), graph.end(), [](std::unique_ptr<HalfEdge> const& edge) { return edge->vertex == 1; });
     REQUIRE(one != graph.end());
 
     auto edgeOne = one->get();
@@ -45,7 +45,7 @@ TEST_CASE("do not flip edges that are fixed")
     REQUIRE(edgeOne->next->vertex == 2);
     REQUIRE(edgeOne->next->next->vertex == 0);
 
-    auto two = std::find_if(graph.begin(), graph.end(), [](auto const& edge) { return edge->vertex == 3; });
+    auto two = std::find_if(graph.begin(), graph.end(), [](std::unique_ptr<HalfEdge> const& edge) { return edge->vertex == 3; });
     REQUIRE(two != graph.end());
 
     auto edgeTwo = two->get();
