@@ -28,8 +28,9 @@ class DecompConan(ConanFile):
         cmake = CMake(self)
         cmake.configure(source_folder=".", defs={
             'decomp_USE_CONAN': True,
-            'decomp_PIC': self.options.fPIC
         })
+        if self.settings.compiler != 'Visual Studio':
+            cmake.definitions['decomp_PIC'] = self.options.fPIC
         return cmake
 
     def build(self):
