@@ -11,8 +11,8 @@ if [[ "$(uname -s)" == 'Linux' ]]; then
     sudo pip3 install cmake==3.13.3
     pip3 install --upgrade pip --user
     pip --version
-    pip install conan --upgrade --user
-    pip install conan_package_tools --user
+    pip install conan==1.24.1 --upgrade --user
+    pip install conan_package_tools==0.32.2 --user
     cmake --version
     conan --version
     conan profile new default --detect --force
