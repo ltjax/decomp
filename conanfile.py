@@ -3,23 +3,32 @@ from conans import ConanFile, CMake, tools
 
 class DecompConan(ConanFile):
     name = "decomp"
-    version = "1.1"
+    version = "1.2"
     license = "MIT"
     author = "Marius Elvert marius.elvert@googlemail.com"
     url = "https://github.com/ltjax/decomp"
     description = "Triangulation and convex decomposition of polygonal meshes"
     topics = ("polygon", "decomposition")
     settings = "os", "compiler", "build_type", "arch"
-    options = {"shared": [True, False]}
-    default_options = "shared=False"
+    options = {
+        "shared": [True, False],
+        "fPIC": [True, False]}
+    default_options = {
+        "shared": False,
+        "fPIC": True}
     generators = "cmake"
     exports_sources = "source/*", "test/*", "demo/*", "include/*", "CMakeLists.txt",
     build_requires = "Catch2/2.7.2@catchorg/stable",
 
+    def configure(self):
+        if self.settings.compiler == 'Visual Studio':
+            del self.options.fPIC
+
     def _configured_cmake(self):
         cmake = CMake(self)
         cmake.configure(source_folder=".", defs={
-            'decomp_USE_CONAN': True
+            'decomp_USE_CONAN': True,
+            'decomp_PIC': self.options.fPic
         })
         return cmake
 

@@ -6,6 +6,7 @@ set(TARGET_NAME ${PROJECT_NAME})
 
 option(${PROJECT_NAME}_USE_CONAN "Use conan" ON)
 option(${PROJECT_NAME}_BUILD_TESTS "Build tests" ON)
+option(${PROJECT_NAME}_PIC "Use position independent code" ON)
 
 if (${PROJECT_NAME}_BUILD_TESTS AND NOT ${PROJECT_NAME}_USE_CONAN)
   find_package(Catch2 REQUIRED)
@@ -29,6 +30,9 @@ add_library(${TARGET_NAME}
   source/decomp/triangulation.cpp
   source/decomp/operations.cpp
   source/decomp/output.cpp)
+
+set_property(TARGET ${TARGET_NAME}
+  PROPERTY POSITION_INDEPENDENT_CODE ${${PROJECT_NAME}_PIC})
 
 target_include_directories(${TARGET_NAME}
   INTERFACE source)
