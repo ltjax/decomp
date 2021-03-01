@@ -60,7 +60,7 @@ if(${PROJECT_NAME}_BUILD_TESTS)
 
   if (${PROJECT_NAME}_USE_CONAN)
     target_link_libraries(${TEST_NAME}
-      PUBLIC decomp CONAN_PKG::Catch2)
+      PUBLIC decomp CONAN_PKG::catch2)
   else()
     target_link_libraries(${TEST_NAME}
       PUBLIC decomp Catch2::Catch2)
