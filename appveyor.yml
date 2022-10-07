@@ -2,18 +2,12 @@ build: false
 
 environment:
     PYTHON: "C:\\Python38-x64"
-
-    CONAN_USERNAME: "ltjax"
-    CONAN_LOGIN_USERNAME: "ltjax"
-    CONAN_CHANNEL: "testing"
-    CONAN_REMOTES: "https://api.bintray.com/conan/bincrafters/public-conan"
-    CONAN_UPLOAD: "https://api.bintray.com/conan/ltjax/conan"
     
     matrix:
+        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+          CONAN_VISUAL_VERSIONS: 17
         - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
           CONAN_VISUAL_VERSIONS: 16
-        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-          CONAN_VISUAL_VERSIONS: 15
 
 install:
   - set PATH=%PATH%;%PYTHON%/Scripts/
