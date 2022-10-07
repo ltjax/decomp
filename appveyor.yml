@@ -18,5 +18,5 @@ test_script:
   - conan remote add conan %CONAN_UPLOAD%
   - conan user -p %CONAN_PASSWORD% -r conan %CONAN_LOGIN_USERNAME%
   - conan create .
-  - conan upload decomp -r conan --all
+  - conan upload decomp -r conan --all -c
 
