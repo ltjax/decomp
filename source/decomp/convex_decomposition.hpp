@@ -24,6 +24,7 @@ std::vector<IndexList> hertelMehlhorn(PointList const& pointList, IndexList cons
 void edgeFlip(PointList const& pointList, std::vector<std::unique_ptr<HalfEdge>> const& edges);
 
 /** Decompose a given simple polygon with simple holes into a list of convex polygons.
+    The outer polygon's vertex order needs to be counter-clockwise, while all holes need to be clockwise.
  */
 std::vector<IndexList>
 decompose(PointList const& pointList, IndexList simplePolygon, std::vector<IndexList> holeList = {}, std::vector<EdgeID> const& fixedEdges = {});
