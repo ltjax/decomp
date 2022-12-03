@@ -18,7 +18,7 @@ class DecompConan(ConanFile):
         "fPIC": True}
     generators = "cmake"
     exports_sources = "source/*", "test/*", "demo/*", "include/*", "CMakeLists.txt",
-    build_requires = "catch2/2.13.4",
+    build_requires = "catch2/2.13.9",
 
     def configure(self):
         if self.settings.compiler == 'Visual Studio':
