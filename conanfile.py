@@ -1,5 +1,6 @@
-from conans import ConanFile, CMake, tools
-
+from conan import ConanFile
+from conan.tools.cmake import CMake, CMakeToolchain, CMakeDeps, cmake_layout
+from conan.tools.microsoft.visual import is_msvc
 
 class DecompConan(ConanFile):
     name = "decomp"
@@ -16,29 +17,40 @@ class DecompConan(ConanFile):
     default_options = {
         "shared": False,
         "fPIC": True}
-    generators = "cmake"
     exports_sources = "source/*", "test/*", "demo/*", "include/*", "CMakeLists.txt",
-    build_requires = "catch2/2.13.9",
+    test_requires = "catch2/2.13.10",
 
-    def configure(self):
-        if self.settings.compiler == 'Visual Studio':
+    def config_options(self):
+        if is_msvc(self):
             del self.options.fPIC
 
+    def generate(self):
+        deps = CMakeDeps(self)
+        deps.generate()
+
+        toolchain = CMakeToolchain(self)
+        toolchain.variables['decomp_USE_CONAN'] = True
+        if not is_msvc(self):
+           toolchain.variables['decomp_PIC'] = self.options.fPIC
+        toolchain.generate()
+
     def _configured_cmake(self):
-        cmake = CMake(self)
         cmake.configure(source_folder=".", defs={
             'decomp_USE_CONAN': True,
         })
-        if self.settings.compiler != 'Visual Studio':
-            cmake.definitions['decomp_PIC'] = self.options.fPIC
         return cmake
 
     def build(self):
-        cmake = self._configured_cmake()
+        cmake = CMake(self)
+        cmake.configure()
         cmake.build()
 
     def package(self):
-        self._configured_cmake().install()
+        cmake = CMake(self)
+        cmake.install()
+    
+    def layout(self):
+        cmake_layout(self)
 
     def package_info(self):
         self.cpp_info.libs = ["decomp"]

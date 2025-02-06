@@ -1,20 +1,14 @@
-cmake_minimum_required (VERSION 3.2.0)
+cmake_minimum_required (VERSION 3.24)
 project (decomp)
 
 set(CMAKE_CXX_STANDARD 11)
 set(TARGET_NAME ${PROJECT_NAME})
 
-option(${PROJECT_NAME}_USE_CONAN "Use conan" ON)
 option(${PROJECT_NAME}_BUILD_TESTS "Build tests" ON)
 option(${PROJECT_NAME}_PIC "Use position independent code" ON)
 
-if (${PROJECT_NAME}_BUILD_TESTS AND NOT ${PROJECT_NAME}_USE_CONAN)
+if (${PROJECT_NAME}_BUILD_TESTS)
   find_package(Catch2 REQUIRED)
-endif()
-
-if (${PROJECT_NAME}_USE_CONAN)
-  include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-  conan_basic_setup(TARGETS)
 endif()
 
 set(HEADERS
@@ -58,13 +52,9 @@ if(${PROJECT_NAME}_BUILD_TESTS)
     test/decomposition.cpp
     test/winding.cpp)
 
-  if (${PROJECT_NAME}_USE_CONAN)
-    target_link_libraries(${TEST_NAME}
-      PUBLIC decomp CONAN_PKG::catch2)
-  else()
-    target_link_libraries(${TEST_NAME}
-      PUBLIC decomp Catch2::Catch2)
-  endif()
+  target_link_libraries(${TEST_NAME}
+    PUBLIC decomp Catch2::Catch2)
+
   include(CTest)
   enable_testing()
   add_test(NAME test_${PROJECT_NAME} COMMAND test_${PROJECT_NAME})
